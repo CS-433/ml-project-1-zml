@@ -3,52 +3,77 @@ from utils import *
 from proj1_helpers import *
 
 
-def mean_squared_error_gd(y, tx, w_init, max_iters, gamma):
-    ws = [w_init]
+# Todo add comment， maybe add early stop
+
+def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
+    ws = [initial_w]
     losses = []
-    w = w_init
+    w = initial_w
     for n_iter in range(max_iters):
-        grad, err = compute_gradient(y, tx, w)
+        grad, err = linear_gradient(y, tx, w)
         loss = MSE(err)
         w = w - gamma * grad
 
         ws.append(w)
         losses.append(loss)
-        print("GD iter. {bi}/{ti}: loss={l}, w0={w0}, w1={w1}".format(
-            bi=n_iter, ti=max_iters - 1, l=loss, w0=w[0], w1=w[1]))
+        print("iteration {i}/{n}: loss={l}, w={w}".format(
+            i=n_iter, n=max_iters - 1, l=loss, w=w))
+        # might add early stop
+    return ws[-1], losses[-1]
 
-    return losses, ws[-1]
 
-
-def mean_squared_error_sgd(y, tx, w_init, max_iters, gamma):
-    ws = [w_init]
+def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma):
+    ws = [initial_w]
     losses = []
-    w = w_init
+    w = initial_w
 
     for n_iter in range(max_iters):
         for y_batch, tx_batch in batch_iter(y, tx, batch_size=1):
-            grad, _ = compute_gradient(y_batch, tx_batch, w)
+            grad, _ = linear_gradient(y_batch, tx_batch, w)
             loss = MSE(y - tx @ w)
             w = w - gamma * grad
             # store w and loss
-            ws.append(w)
-            losses.append(loss)
-        print("SGD iter. {bi}/{ti}: loss={l}, w0={w0}, w1={w1}".format(
-            bi=n_iter, ti=max_iters - 1, l=loss, w0=w[0], w1=w[1]))
-    return losses, ws[-1]
+        ws.append(w)
+        losses.append(loss)
+        print("SGD iteration {i}/{n}: loss={l}, w={w}".format(
+            i=n_iter, n=max_iters - 1, l=loss, w=w))
+        # might add early stop
+    return ws[-1], losses[-1]
 
 
 def least_squares(y, tx):
-    return
+    a = tx.T @ tx
+    b = tx.T @ y
+    w = np.linalg.solve(a, b)
+    loss = MSE(y - tx @ w)
+    return w, loss
 
 
-def ridge_regression(y, tx, l):
-    return
+def ridge_regression(y, tx, lambda_):
+    a = tx.T @ tx + 2 * tx.shape[0] * lambda_ * np.identity(tx.shape[1])
+    b = tx.T @ y
+    w = np.linalg.solve(a, b)
+    loss = MSE(y - tx @ w)
+    return w, loss
 
 
-def logistic_regression(y, tx, w_init, max_iters, gamma):
-    return
+def logistic_regression(y, tx, initial_w, max_iters, gamma):
+    ws = [initial_w]
+    losses = []
+    w = initial_w
+    for n_iter in range(max_iters):
+        for y_batch, tx_batch in batch_iter(y, tx, batch_size=1):
+            grad, _ = logo_gradient(y_batch, tx_batch, w)
+            loss = cross_entropy(y, tx, w)
+            w = w - gamma * grad
+            # store w and loss
+        ws.append(w)
+        losses.append(loss)
+        print("SGD iteration {i}/{n}: loss={l}, w={w}".format(
+            i=n_iter, n=max_iters - 1, l=loss, w=w))
+        # might add early stop
+    return ws[-1], losses[-1]
 
 
-def reg_logistic_regression(y, tx, l, w_init, max_iters, gamma):
+def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     return

@@ -3,27 +3,24 @@
 import numpy as np
 import csv
 
+def load_csv_data(path, sub_sample=False):
+    """Loads data and returns y (class labels), tX (features) and ids (event ids)"""
+    y = np.genfromtxt(path, delimiter=",", skip_header=1, dtype=str, usecols=1)
+    x = np.genfromtxt(path, delimiter=",", skip_header=1)
+    ids = x[:, 0].astype(np.int)
+    input_data = x[:, 2:]
 
-def load_data(path_dataset,sub_sample=False):
-    """Load data and convert it to the metric system."""
-    X = np.genfromtxt(
-        path_dataset, delimiter=",", skip_header=1, usecols=list(range(2, 32)))
-    Y = np.genfromtxt(
-        path_dataset, delimiter=",", skip_header=1, usecols=(1), dtype=str)
+    # convert class labels from strings to binary (-1,1)
+    yb = np.ones(y.shape[0])
+    yb[np.where(y == "b")] = -1
 
-    # check data 
-    if X.shape[0] != Y.shape[0]:
-        print('Inconsisent data number')
-    print(np.unique(Y))
-    
-    Y_int = np.ones(Y.size)
-    Y_int[np.where(Y=='b')] = -1
     # sub-sample
     if sub_sample:
-        X = X[::50]
-        Y = Y[::50]
+        yb = yb[::50]
+        input_data = input_data[::50]
+        ids = ids[::50]
 
-    return X, Y_int 
+    return yb, input_data, ids
 
 
 def create_csv_submission(ids, y_pred, name):
@@ -65,5 +62,3 @@ def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
         end_index = min((batch_num + 1) * batch_size, data_size)
         if start_index != end_index:
             yield shuffled_y[start_index:end_index], shuffled_tx[start_index:end_index]
-
-

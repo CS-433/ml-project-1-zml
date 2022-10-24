@@ -21,7 +21,7 @@ def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
     """
     w, ws, losses = initial_w, [initial_w], []
     for n_iter in range(max_iters):
-        loss = mean_square_error(y, tx, w)        
+        loss = mean_square_error(y, tx, w)
         w = w - gamma * linear_regression_gradient(y, tx, w)
 
         ws.append(w)
@@ -51,14 +51,15 @@ def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma):
     for n_iter in range(max_iters):
         loss = mean_square_error(y, tx, w)
         for minibatch_y, minibatch_tx in batch_iter(y, tx, batch_size=1):
-            w = w - gamma * linear_regression_gradient(minibatch_y, minibatch_tx, w)
-            
+            w = w - gamma * \
+                linear_regression_gradient(minibatch_y, minibatch_tx, w)
+
         ws.append(w)
         losses.append(loss)
         print("SGD iteration {i}/{n}: loss={l}, w={w}".format(
             i=n_iter, n=max_iters - 1, l=loss, w=w))
         # might add early stop
-        
+
     return ws[-1], losses[-1]
 
 
@@ -68,7 +69,7 @@ def least_squares(y, tx):
     Args:
         y: numpy array of shape (N,), N is the number of samples.
         tx: numpy array of shape (N,D), D is the number of features.
-    
+
     Returns:
         weights: optimal weights, numpy array of shape(D,), D is the number of features.
         loss: mean square error, scalar.
@@ -81,13 +82,13 @@ def least_squares(y, tx):
 
 def ridge_regression(y, tx, lambda_, bias_term=False):
     """Calculate ridge regression.
-    
+
     Args:
         y: numpy array of shape (N,), N is the number of samples.
         tx: numpy array of shape (N, D), D is the number of features.
         lambda_: scalar.
         bias_term: true if tx has a bias term
-    
+
     Returns:
         w: optimal weights, numpy array of shape(D,), D is the number of features.
         loss: mean square error, scalar.
@@ -97,13 +98,14 @@ def ridge_regression(y, tx, lambda_, bias_term=False):
     if bias_term:
         ridge_matrix[0, 0] = 0
 
-    weights = np.linalg.solve(tx.T @ tx + 2 * n * lambda_ * ridge_matrix, tx.T @ y)
+    weights = np.linalg.solve(
+        tx.T @ tx + 2 * n * lambda_ * ridge_matrix, tx.T @ y)
     loss = mean_square_error(y, tx, weights)
 
     return weights, loss
 
 
-def logistic_regression(y, tx, initial_w, max_iters, gamma, bias_term=False):
+def logistic_regression(y, tx, initial_w, max_iters, gamma, epsilon=10e-5, bias_term=False):
     """The Stochastic Gradient Descent algorithm (SGD).
 
     Args:
@@ -120,20 +122,22 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma, bias_term=False):
     """
     w, ws, losses = initial_w, [initial_w], []
     for n_iter in range(max_iters):
+        w = w - gamma * logistic_regression_gradient(
+            y, tx, w, bias_term=bias_term)
         loss = cross_entropy_loss(y, tx, w, bias_term=bias_term)
-        for y_batch, tx_batch in batch_iter(y, tx, batch_size=1):
-            w = w - gamma * logistic_regression_gradient(y_batch, tx_batch, w, bias_term=bias_term)
-            
+
         ws.append(w)
         losses.append(loss)
         """print("SGD iteration {i}/{n}: loss={l}, w={w}".format(
             i=n_iter, n=max_iters - 1, l=loss, w=w))"""
-        # might add early stop
+
+        if n_iter > 1 and np.abs(losses[-1] - losses[-2]) < epsilon:
+            break
 
     return ws[-1], losses[-1]
 
 
-def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma, bias_term=False):
+def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma, epsilon=10e-5, bias_term=False):
     """The Stochastic Gradient Descent algorithm (SGD).
 
     Args:
@@ -150,14 +154,17 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma, bias_te
     """
     w, ws, losses = initial_w, [initial_w], []
     for n_iter in range(max_iters):
-        loss = cross_entropy_loss(y, tx, w, lambda_=lambda_, bias_term=bias_term)
-        for y_batch, tx_batch in batch_iter(y, tx, batch_size=1):
-            w = w - gamma * logistic_regression_gradient(y_batch, tx_batch, w, lambda_=lambda_, bias_term=bias_term)
-            
+        w = w - gamma * logistic_regression_gradient(
+            y, tx, w, lambda_=lambda_, bias_term=bias_term)
+        loss = cross_entropy_loss(
+            y, tx, w, lambda_=lambda_, bias_term=bias_term)
+
         ws.append(w)
         losses.append(loss)
-        print("SGD iteration {i}/{n}: loss={l}, w={w}".format(
-            i=n_iter, n=max_iters - 1, l=loss, w=w))
-        # might add early stop
+        """print("SGD iteration {i}/{n}: loss={l}, w={w}".format(
+            i=n_iter, n=max_iters - 1, l=loss, w=w))"""
+
+        if n_iter > 1 and np.abs(losses[-1] - losses[-2]) < epsilon:
+            break
 
     return ws[-1], losses[-1]

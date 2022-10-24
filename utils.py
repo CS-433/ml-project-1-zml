@@ -154,6 +154,7 @@ def kfolds(n, kfold=10, shuffle=True):
 
     return kfoldsShuffle
 
+
 def accuracy(y, y_hat):
     """Calculate the accuracy"""
     return (y == y_hat).sum() / y.shape[0]
@@ -161,7 +162,7 @@ def accuracy(y, y_hat):
 
 def outliers_map(x):
     """get outliers position per column"""
-    p3, p1 = np.percentile(x[(x != -999)], [95, 5])
+    p3, p1 = np.percentile(x[(x != -999)], [98, 2])
     iqr = p3 - p1
     low = p1 - 1.5 * iqr
     high = p3 + 1.5 * iqr

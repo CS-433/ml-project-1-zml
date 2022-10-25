@@ -3,6 +3,7 @@
 import numpy as np
 import csv
 
+
 def load_csv_data(path, sub_sample=False):
     """Loads data and returns y (class labels), tX (features) and ids (event ids)"""
     y = np.genfromtxt(path, delimiter=",", skip_header=1, dtype=str, usecols=1)

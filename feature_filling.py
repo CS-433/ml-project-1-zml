@@ -45,7 +45,7 @@ def calculate_feature_weight(X):
 
 
 def fill_features_with_linear_regression(X, Columns_With_Missing_Features=None, Feature_Weights=None):
-    if(Columns_With_Missing_Features is None or Feature_Weights is None):
+    if Columns_With_Missing_Features is None or Feature_Weights is None:
         Columns_With_Missing_Features, Feature_Weights = calculate_feature_weight(
             X)
 
@@ -66,22 +66,22 @@ def fill_features_with_linear_regression(X, Columns_With_Missing_Features=None, 
 
 
 def calculate_feature_medians(X):
-    Columns_With_Missing_Features = np.where(np.all(np.isnan(X), axis=0))[0]
+    Columns_With_Missing_Features = np.where(~np.all(~np.isnan(X), axis=0))[0]
 
     Feature_Median = np.nanmedian(
-        X[np.ix_(np.arange(X.shape[0]), Columns_With_Missing_Features)], axis=1)
+        X[np.ix_(np.arange(X.shape[0]), Columns_With_Missing_Features)], axis=0)
     return Columns_With_Missing_Features, Feature_Median
 
 
 def fill_features_with_median(X, Columns_With_Missing_Features=None, Feature_Median=None):
-    if(Columns_With_Missing_Features is None or Feature_Median is None):
+    if Columns_With_Missing_Features is None or Feature_Median is None:
         Columns_With_Missing_Features, Feature_Median = calculate_feature_medians(
             X)
 
-    for Missing_Feature_Index in Columns_With_Missing_Features:
+    for i,index in enumerate(Columns_With_Missing_Features):
         Rows_Without_Feature_Index = np.nonzero(
-            np.isnan(X[:, Missing_Feature_Index]))[0]
-        X[np.ix_(Rows_Without_Feature_Index, [Missing_Feature_Index])
-          ] = Feature_Median[Missing_Feature_Index]
+            np.isnan(X[:, index]))[0]
+        X[np.ix_(Rows_Without_Feature_Index, [index])
+          ] = Feature_Median[i]
 
     return X

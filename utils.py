@@ -59,13 +59,15 @@ def cross_entropy_loss(y, tx, w, lambda_=0, bias_term=False):
         a non-negative loss
     """
     n = y.shape[0]
-    eps = 10e-10
+    # eps = 10e-10
+    eps = 0
 
     start_2_norm = 1 if bias_term else 0
 
-    sigmoid_values = sigmoid(tx @ w)
-    return -(y.T @ np.log(sigmoid_values + eps) + (1 - y.T) @ np.log(
-        1 - sigmoid_values + eps)) / n + lambda_ / n * np.linalg.norm(w[start_2_norm:], 2)
+    y_hat = sigmoid(tx @ w)
+    return -np.sum((y * np.log(y_hat + eps) + (1 - y) * np.log(
+        1 - y_hat + eps))) / n + lambda_ / (2 * n) * w.T @ w
+    # + lambda_ / n * np.linalg.norm(w[start_2_norm:], 2)
 
 
 def logistic_regression_gradient(y, tx, w, lambda_=0, bias_term=False):
@@ -85,8 +87,8 @@ def logistic_regression_gradient(y, tx, w, lambda_=0, bias_term=False):
 
     if bias_term:
         ridge_matrix[0, 0] = 0
-
-    return tx.T @ (sigmoid(tx @ w) - y) / n + lambda_ / n * ridge_matrix @ w
+    y_hat = 1 / (1 + np.exp(- tx @ w))
+    return 1 / n * tx.T @ (y_hat - y) + lambda_ / n * ridge_matrix @ w
 
 
 def split_data(x, y, ratio):
@@ -122,6 +124,7 @@ def predictions(x, weights):
 
 
 def compute_score(y, tx, weights, f=predictions):
+    """Calculate the accuracy"""
     y_pred = np.array([f(x, weights) for x in tx])
     return (y_pred == y).sum() / len(y)
 
@@ -155,20 +158,15 @@ def kfolds(n, kfold=10, shuffle=True):
     return kfoldsShuffle
 
 
-def accuracy(y, y_hat):
-    """Calculate the accuracy"""
-    return (y == y_hat).sum() / y.shape[0]
-
-
 def outliers_map(x):
     """get outliers position per column"""
-    p3, p1 = np.percentile(x[(x != -999)], [98, 2])
+    p3, p1 = np.percentile(x[~np.isnan(x)], [98, 2])
     iqr = p3 - p1
     low = p1 - 1.5 * iqr
     high = p3 + 1.5 * iqr
-    # print(low, high)
+    # print(p3, p1)
     mask1 = (x < high) & (x > low)
-    mask2 = (x == -999)
+    mask2 = np.isnan(x)
     return mask1 | mask2
 
 

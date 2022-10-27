@@ -74,9 +74,8 @@ def least_squares(y, tx):
         weights: optimal weights, numpy array of shape(D,), D is the number of features.
         loss: mean square error, scalar.
     """
-    loss = mean_square_error(y, tx, weights)
     weights = np.linalg.solve(tx.T @ tx, tx.T @ y)
-
+    loss = mean_square_error(y, tx, weights)
     return weights, loss
 
 
@@ -101,7 +100,7 @@ def ridge_regression(y, tx, lambda_):
     return weights, loss
 
 
-def logistic_regression(y, tx, initial_w, max_iters, gamma):
+def logistic_regression(y, tx, initial_w, max_iters, gamma, balanced=False):
     """The Gradient Descent algorithm (GD).
 
     Args:
@@ -110,18 +109,16 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
         initial_w: shape=(D, ). The initial guess (or the initialization) for the model parameters
         max_iters: a scalar denoting the total number of iterations of SGD
         gamma: a scalar denoting the stepsize
-        bias_term: true if tx has a bias term
+        balanced:
 
     Returns:
         ws: a list of length max_iters containing the model parameters as numpy arrays of shape (D, ), for each iteration of SGD
         losses: a list of length max_iters containing the loss value (scalar) for each iteration of SGD
     """
-    return reg_logistic_regression(y, tx, 0, initial_w, max_iters, gamma)
-
-        
+    return reg_logistic_regression(y, tx, 0, initial_w, max_iters, gamma, balanced)
 
 
-def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
+def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma, balanced=False):
     """The Stochastic Gradient Descent algorithm (SGD).
 
     Args:
@@ -129,12 +126,12 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
         tx: shape=(N, D)
         lambda_:
         initial_w: shape=(D, ). The initial guess (or the initialization) for the model parameters
-        max_iters: a scalar denoting the total number of iterations of SGD
-        gamma: a scalar denoting the stepsize
-        bias_term: true if tx has a bias term
+        max_iters: a scalar denoting the total number of iterations of GD
+        gamma: a scalar denoting the step size
+        balanced:
 
     Returns:
-        ws: a list of length max_iters containing the model parameters as numpy arrays of shape (D, ), for each iteration of SGD
+        ws: a list of length max_iters containing the model parameters as numpy arrays of shape (D, ), for each iteration of GD
         losses: a list of length max_iters containing the loss value (scalar) for each iteration of SGD
     """
     m1 = 0.1  # Parameters for Goldstein-Price
@@ -143,7 +140,7 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
 
     w, ws, losses = initial_w, [initial_w], []
     for n_iter in range(max_iters):
-        loss = cross_entropy_loss(y, tx, w, lambda_=lambda_)
+        loss = cross_entropy_loss(y, tx, w, lambda_=lambda_, balanced=balanced)
 
         gradient = -logistic_regression_gradient(y, tx, w, lambda_=lambda_)
 
@@ -151,20 +148,20 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
         tr = 0
         t = 1
         while True:
-            qt = cross_entropy_loss(y, tx, w + t * gradient, lambda_=lambda_)
+            qt = cross_entropy_loss(y, tx, w + t * gradient, lambda_=lambda_, balanced=balanced)
             qp = -gradient.T @ gradient
             gpt = logistic_regression_gradient(
                 y, tx, w + t * gradient, lambda_=lambda_).T @ gradient
             if ((qt - loss) / t <= (m1 * qp)) and (gpt >= (m2 * qp)):
-                gamma = t   # we found a good step
+                gamma = t  # we found a good step
                 break
-            if ((qt - loss) / t > (m1 * qp)):
+            if (qt - loss) / t > (m1 * qp):
                 # step too big
                 tr = t
             if ((qt - loss) / t <= (m1 * qp)) and (gpt < (m2 * qp)):
                 # step too small
                 tl = t
-            if(tr == 0):
+            if tr == 0:
                 t = 2 * tl
             else:
                 t = 0.5 * (tl + tr)
@@ -176,7 +173,7 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
         ws.append(w)
         losses.append(loss)
         if n_iter % 200 == 0:
-            print(f"Iteration {n_iter + 1}/{max_iters}: loss={loss}, w={w}")
+            print(f"Iteration {n_iter + 1}/{max_iters}: loss={loss},gamma={gamma}")
 
         if n_iter > 1 and np.abs(losses[-1] - losses[-2]) < tol:
             break

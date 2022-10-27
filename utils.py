@@ -44,7 +44,7 @@ def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
 
-def cross_entropy_loss(y, tx, w, lambda_=0):
+def cross_entropy_loss(y, tx, w, lambda_=0, balanced=False):
     """Compute the cross entropy loss.
 
     Args:
@@ -52,12 +52,20 @@ def cross_entropy_loss(y, tx, w, lambda_=0):
         tx: shape=(N, D)
         w:  shape=(D, 1) 
         lambda_: ridge regression parameter
-        bias_term: true if tx has a bias term
+        balanced: true if balanced loss
 
     Returns:
         a non-negative loss
     """
-    return np.mean(np.log(1 + np.exp(tx @ w)) - y * (tx @ w)) + 0.5 * lambda_ * np.linalg.norm(w) ** 2
+    if not balanced:
+        return np.mean(np.log(1 + np.exp(tx @ w)) - y * (tx @ w)) + 0.5 * lambda_ * np.linalg.norm(w) ** 2
+    else:
+        y_0 = y[np.where(y == 0)]
+        beta = y_0.shape[0] / y.shape[0]
+        y_hat = sigmoid(tx @ w)
+        return -np.mean(
+            (beta * y * np.log(y_hat) + (1 - beta) * (1 - y) * np.log(1 - y_hat))) + 0.5 * lambda_ * np.linalg.norm(
+            w) ** 2
 
 
 def logistic_regression_gradient(y, tx, w, lambda_=0):
@@ -67,7 +75,7 @@ def logistic_regression_gradient(y, tx, w, lambda_=0):
         y:  shape=(N, 1)
         tx: shape=(N, D)
         w:  shape=(D, 1) 
-        bias_term: true if tx has a bias term
+        lambda_: true if tx has a bias term
 
     Returns:
         a vector of shape (D, 1)
@@ -127,6 +135,21 @@ def compute_score(y, tx, weights, f=predictions):
     """Calculate the accuracy"""
     y_pred = np.array([f(x, weights) for x in tx])
     return (y_pred == y).sum() / len(y)
+
+
+def f1_score(actual, tx, weights, label=1, f=predictions):
+    """ calculate f1-score for the given `label` """
+    predicted = np.array([f(x, weights) for x in tx])
+
+    tp = np.sum((actual == label) & (predicted == label))
+    fp = np.sum((actual != label) & (predicted == label))
+    fn = np.sum((predicted != label) & (actual == label))
+
+    # F1 = 2 * (precision * recall) / (precision + recall)
+    precision = tp / (tp + fp)
+    recall = tp / (tp + fn)
+    f1 = 2 * (precision * recall) / (precision + recall)
+    return f1
 
 
 def standardize(x):

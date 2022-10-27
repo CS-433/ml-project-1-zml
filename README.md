@@ -7,3 +7,4 @@
 - [ ] outliers 
 - [ ] Polynomial
 - [ ] Standlization
+- [ ] Voting system

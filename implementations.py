@@ -74,13 +74,13 @@ def least_squares(y, tx):
         weights: optimal weights, numpy array of shape(D,), D is the number of features.
         loss: mean square error, scalar.
     """
-    weights = np.linalg.solve(tx.T @ tx, tx.T @ y)
     loss = mean_square_error(y, tx, weights)
+    weights = np.linalg.solve(tx.T @ tx, tx.T @ y)
 
     return weights, loss
 
 
-def ridge_regression(y, tx, lambda_, bias_term=False):
+def ridge_regression(y, tx, lambda_):
     """Calculate ridge regression.
 
     Args:
@@ -94,19 +94,15 @@ def ridge_regression(y, tx, lambda_, bias_term=False):
         loss: mean square error, scalar.
     """
     n, d = tx.shape
-    ridge_matrix = np.eye(d)
-    if bias_term:
-        ridge_matrix[0, 0] = 0
-
     weights = np.linalg.solve(
-        tx.T @ tx + 2 * n * lambda_ * ridge_matrix, tx.T @ y)
+        tx.T @ tx + 2 * n * lambda_ * np.eye(d), tx.T @ y)
     loss = mean_square_error(y, tx, weights)
 
     return weights, loss
 
 
-def logistic_regression(y, tx, initial_w, max_iters, gamma, epsilon=10e-10, bias_term=False):
-    """The Stochastic Gradient Descent algorithm (SGD).
+def logistic_regression(y, tx, initial_w, max_iters, gamma):
+    """The Gradient Descent algorithm (GD).
 
     Args:
         y: shape=(N, )
@@ -120,27 +116,12 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma, epsilon=10e-10, bias
         ws: a list of length max_iters containing the model parameters as numpy arrays of shape (D, ), for each iteration of SGD
         losses: a list of length max_iters containing the loss value (scalar) for each iteration of SGD
     """
-    w, ws, losses = initial_w, [initial_w], []
-    for n_iter in range(max_iters):
-        w = w - gamma * logistic_regression_gradient(
-            y, tx, w, bias_term=bias_term)
-        # for minibatch_y, minibatch_tx in batch_iter(y, tx, batch_size=1):
-        #     w = w - gamma * logistic_regression_gradient(
-        #         minibatch_y, minibatch_tx, w, bias_term=bias_term)
-        loss = cross_entropy_loss(y, tx, w, bias_term=bias_term)
-        ws.append(w)
-        losses.append(loss)
-        # if n_iter % 100 == 0:
-        #     print(f"SGD iteration {n_iter}/{max_iters - 1}: loss={loss}")
+    return reg_logistic_regression(y, tx, 0, initial_w, max_iters, gamma)
 
-        # early stop
-        if n_iter > 1 and np.abs(losses[-1] - losses[-2]) < epsilon:
-            break
-
-    return ws[-1], losses[-1]
+        
 
 
-def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma, epsilon=10e-5, bias_term=False):
+def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     """The Stochastic Gradient Descent algorithm (SGD).
 
     Args:
@@ -156,20 +137,48 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma, epsilon
         ws: a list of length max_iters containing the model parameters as numpy arrays of shape (D, ), for each iteration of SGD
         losses: a list of length max_iters containing the loss value (scalar) for each iteration of SGD
     """
+    m1 = 0.1  # Parameters for Goldstein-Price
+    m2 = 0.9
+    tol = 1e-8
+
     w, ws, losses = initial_w, [initial_w], []
     for n_iter in range(max_iters):
-        w = w - gamma * logistic_regression_gradient(y, tx, w, lambda_=lambda_, bias_term=bias_term)
-        # for minibatch_y, minibatch_tx in batch_iter(y, tx, batch_size=1):
-        #     w = w - gamma * logistic_regression_gradient(
-        #         minibatch_y, minibatch_tx, w, lambda_=lambda_, bias_term=bias_term)
-        loss = cross_entropy_loss(y, tx, w, lambda_=lambda_, bias_term=bias_term)
+        loss = cross_entropy_loss(y, tx, w, lambda_=lambda_)
+
+        gradient = -logistic_regression_gradient(y, tx, w, lambda_=lambda_)
+
+        tl = 0
+        tr = 0
+        t = 1
+        while True:
+            qt = cross_entropy_loss(y, tx, w + t * gradient, lambda_=lambda_)
+            qp = -gradient.T @ gradient
+            gpt = logistic_regression_gradient(
+                y, tx, w + t * gradient, lambda_=lambda_).T @ gradient
+            if ((qt - loss) / t <= (m1 * qp)) and (gpt >= (m2 * qp)):
+                gamma = t   # we found a good step
+                break
+            if ((qt - loss) / t > (m1 * qp)):
+                # step too big
+                tr = t
+            if ((qt - loss) / t <= (m1 * qp)) and (gpt < (m2 * qp)):
+                # step too small
+                tl = t
+            if(tr == 0):
+                t = 2 * tl
+            else:
+                t = 0.5 * (tl + tr)
+            if abs(tr - tl) <= tol:
+                break
+
+        w = w + gamma * gradient
 
         ws.append(w)
         losses.append(loss)
-        # if n_iter % 100 == 0:
-        #     print(f"SGD iteration {n_iter}/{max_iters - 1}: loss={loss}")
+        if n_iter % 200 == 0:
+            print(f"Iteration {n_iter + 1}/{max_iters}: loss={loss}, w={w}")
 
-        if n_iter > 1 and np.abs(losses[-1] - losses[-2]) < epsilon:
+        if n_iter > 1 and np.abs(losses[-1] - losses[-2]) < tol:
             break
 
-    return ws[-1], losses[-1]
+    return ws[-1], losses

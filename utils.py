@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 # loss function
@@ -45,7 +44,7 @@ def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
 
-def cross_entropy_loss(y, tx, w, lambda_=0, bias_term=False):
+def cross_entropy_loss(y, tx, w, lambda_=0):
     """Compute the cross entropy loss.
 
     Args:
@@ -58,19 +57,10 @@ def cross_entropy_loss(y, tx, w, lambda_=0, bias_term=False):
     Returns:
         a non-negative loss
     """
-    n = y.shape[0]
-    # eps = 10e-10
-    eps = 0
-
-    start_2_norm = 1 if bias_term else 0
-
-    y_hat = sigmoid(tx @ w)
-    return -np.sum((y * np.log(y_hat + eps) + (1 - y) * np.log(
-        1 - y_hat + eps))) / n + lambda_ / (2 * n) * w.T @ w
-    # + lambda_ / n * np.linalg.norm(w[start_2_norm:], 2)
+    return np.mean(np.log(1 + np.exp(tx @ w)) - y * (tx @ w)) + 0.5 * lambda_ * np.linalg.norm(w) ** 2
 
 
-def logistic_regression_gradient(y, tx, w, lambda_=0, bias_term=False):
+def logistic_regression_gradient(y, tx, w, lambda_=0):
     """Compute the gradient of loss for logistic regression.
 
     Args:
@@ -82,13 +72,7 @@ def logistic_regression_gradient(y, tx, w, lambda_=0, bias_term=False):
     Returns:
         a vector of shape (D, 1)
     """
-    n, d = tx.shape
-    ridge_matrix = np.eye(d)
-
-    if bias_term:
-        ridge_matrix[0, 0] = 0
-    y_hat = 1 / (1 + np.exp(- tx @ w))
-    return 1 / n * tx.T @ (y_hat - y) + lambda_ / n * ridge_matrix @ w
+    return tx.T @ (sigmoid(tx @ w) - y) / y.shape[0] + lambda_ * w
 
 
 def split_data(x, y, ratio):
@@ -116,8 +100,24 @@ def split_data(x, y, ratio):
     return x[perm_tr], x[perm_te], y[perm_tr], y[perm_te]
 
 
+def build_poly(x, degree):
+    """polynomial basis functions for input data x, for j=0 up to j=degree.
+
+    Args:
+        x: numpy array of shape (N, D), N is the number of samples.
+        degree: integer.
+
+    Returns:
+        poly: numpy array of shape (N, degree + 1, D)
+    """
+    res = []
+    for x_i in x:
+        res.append(np.array([x_i ** j for j in range(degree + 1)]))
+    return np.array(res)
+
+
 def predictions(x, weights):
-    if sigmoid(x @ weights) > 0.5:
+    if sigmoid(x @ weights) >= 0.5:
         return 1
     else:
         return 0
@@ -139,8 +139,7 @@ def standardize(x):
 
 
 def add_bias_term(x):
-    n = x.shape[0]
-    return np.concatenate((np.ones((n, 1)), x), axis=1)
+    return np.concatenate((np.ones((x.shape[0], 1)), x), axis=1)
 
 
 def kfolds(n, kfold=10, shuffle=True):
@@ -149,7 +148,7 @@ def kfolds(n, kfold=10, shuffle=True):
     else:
         perm = np.arange(n)
 
-    kfoldsShuffle, div = [], int(kfold / 100 * n)
+    kfoldsShuffle, div = [], int(n / kfold)
     for i in range(kfold):
         test_indices = perm[div * i: div * (i + 1)]
         train_indices = np.concatenate((perm[:div * i], perm[div * (i + 1):]))

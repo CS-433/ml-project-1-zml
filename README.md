@@ -9,13 +9,6 @@
 - [x] outliers 
 - [ ] Polynomial test with sklearn, not improved much
 - [x] Standardization
-- [ ] Maybe add kfold validation into classifier function to get the best w and loss 
-
-- [ ] unbalanced data
-- [ ] missing value : mean, median, predict to fill, missing value have relationship to predictions
-- [x] outliers 
-- [ ] Polynomial
-- [x] Standlization
 - [ ] Voting system
 
 

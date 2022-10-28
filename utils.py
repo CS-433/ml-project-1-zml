@@ -124,22 +124,35 @@ def build_poly(x, degree):
     return np.array(res)
 
 
-def predictions(x, weights):
+def logistic(x, weights):
     if sigmoid(x @ weights) >= 0.5:
         return 1
     else:
         return 0
 
 
-def compute_score(y, tx, weights, f=predictions):
+def linear(x, weights):
+    if x @ weights >= 0.5:
+        return 1
+    else:
+        return 0
+
+
+def compute_score(y, tx, weights, f='log'):
     """Calculate the accuracy"""
-    y_pred = np.array([f(x, weights) for x in tx])
+    if f =='log':
+        y_pred = np.array([logistic(x, weights) for x in tx])
+    if f =='linear':
+        y_pred = np.array([linear(x, weights) for x in tx])
     return (y_pred == y).sum() / len(y)
 
 
-def f1_score(actual, tx, weights, label=1, f=predictions):
+def f1_score(actual, tx, weights, label=1, f='log'):
     """ calculate f1-score for the given `label` """
-    predicted = np.array([f(x, weights) for x in tx])
+    if f == 'log':
+        predicted = np.array([logistic(x, weights) for x in tx])
+    if f == 'linear':
+        predicted = np.array([linear(x, weights) for x in tx])
 
     tp = np.sum((actual == label) & (predicted == label))
     fp = np.sum((actual != label) & (predicted == label))
@@ -154,9 +167,9 @@ def f1_score(actual, tx, weights, label=1, f=predictions):
 
 def standardize(x):
     """Standardize the original data set."""
-    mean_x = np.mean(x)
+    mean_x = np.mean(x,axis=0)
     x = x - mean_x
-    std_x = np.std(x)
+    std_x = np.std(x,axis=0)
     x = x / std_x
     return x, mean_x, std_x
 

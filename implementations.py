@@ -74,8 +74,8 @@ def least_squares(y, tx):
         weights: optimal weights, numpy array of shape(D,), D is the number of features.
         loss: mean square error, scalar.
     """
-    loss = mean_square_error(y, tx, weights)
     weights = np.linalg.solve(tx.T @ tx, tx.T @ y)
+    loss = mean_square_error(y, tx, weights)
 
     return weights, loss
 
@@ -141,7 +141,6 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     w, ws, losses = initial_w, [initial_w], []
     for n_iter in range(max_iters):
         loss = cross_entropy_loss(y, tx, w, lambda_=lambda_)
-
         gradient = -logistic_regression_gradient(y, tx, w, lambda_=lambda_)
 
         tl = 0
@@ -174,9 +173,9 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
         losses.append(loss)
 
         if n_iter % 200 == 0:
-            print(f"Iteration {n_iter + 1}/{max_iters}: loss={loss}, w={w}")
+            print(f"Iteration {n_iter + 1}/{max_iters}: loss={loss}")
 
         if n_iter > 1 and np.abs(losses[-1] - losses[-2]) < tol:
             break
 
-    return ws[-1], losses
+    return ws[-1], losses[-1]

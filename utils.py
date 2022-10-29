@@ -1,6 +1,5 @@
 import numpy as np
 
-
 def mean_square_error(y, tx, w):
     """Calculate the loss using either MSE or MAE.
 
@@ -73,6 +72,24 @@ def logistic_regression_gradient(y, tx, w, lambda_=0):
     return tx.T @ (sigmoid(tx @ w) - y) / y.shape[0] + lambda_ * w
 
 
+def linear(x, weights):
+    if x @ weights < 0:
+        return -1
+    else:
+        return 1
+
+def logistic(x, weights):
+    if sigmoid(x @ weights) >= 0.5:
+        return 1
+    else:
+        return 0
+
+
+def compute_score(y, tx, weights, f=logistic):
+    y_pred = np.array([f(x, weights) for x in tx])
+    return (y_pred == y).sum() / len(y)
+
+
 def split_data(x, y, ratio):
     """
     Split the dataset based on the split ratio.
@@ -98,47 +115,6 @@ def split_data(x, y, ratio):
     return x[perm_tr], x[perm_te], y[perm_tr], y[perm_te]
 
 
-def build_poly(x, degree):
-    """polynomial basis functions for input data x, for j=0 up to j=degree.
-
-    Args:
-        x: numpy array of shape (N, D), N is the number of samples.
-        degree: integer.
-
-    Returns:
-        poly: numpy array of shape (N, degree + 1, D)
-    """
-    res = []
-    for x_i in x:
-        res.append(np.array([x_i ** j for j in range(degree + 1)]))
-    return np.array(res)
-
-
-def predictions(x, weights):
-    if sigmoid(x @ weights) >= 0.5:
-        return 1
-    else:
-        return 0
-
-
-def compute_score(y, tx, weights, f=predictions):
-    y_pred = np.array([f(x, weights) for x in tx])
-    return (y_pred == y).sum() / len(y)
-
-
-def standardize(x):
-    """Standardize the original data set."""
-    mean_x = np.mean(x)
-    x = x - mean_x
-    std_x = np.std(x)
-    x = x / std_x
-    return x, mean_x, std_x
-
-
-def add_bias_term(x):
-    return np.concatenate((np.ones((x.shape[0], 1)), x), axis=1)
-
-
 def kfolds(n, kfold=10, shuffle=True):
     if shuffle:
         perm = np.random.permutation(n)
@@ -152,3 +128,54 @@ def kfolds(n, kfold=10, shuffle=True):
         kfoldsShuffle.append((train_indices, test_indices))
 
     return kfoldsShuffle
+
+def outliers_map(x):
+    """get outliers position per column"""
+    p3, p1 = np.percentile(x[~np.isnan(x)], [98, 2])
+    iqr = p3 - p1
+    low = p1 - 1.5 * iqr
+    high = p3 + 1.5 * iqr
+    mask1 = (x < high) & (x > low)
+    mask2 = np.isnan(x)
+    return mask1 | mask2
+
+
+def remove_outliers(x, y):
+    """remove outliers"""
+    x_copy = x.copy()
+    y_copy = y.copy()
+    outliers = np.ones(x.shape, dtype=bool)
+
+    for i in range(x.shape[1]):
+        outliers[:, i] = outliers_map(x[:, i])
+
+    outliers = np.sum(outliers, axis=1) == x.shape[1]
+    x_copy = x_copy[outliers]
+    y_copy = y_copy[outliers]
+
+    return x_copy, y_copy, outliers
+
+def f1_score(actual, tx, weights, label=1, f=logistic):
+    """ calculate f1-score for the given `label` """
+    predicted = np.array([f(x, weights) for x in tx])
+
+    tp = np.sum((actual == label) & (predicted == label))
+    fp = np.sum((actual != label) & (predicted == label))
+    fn = np.sum((predicted != label) & (actual == label))
+
+    precision = tp / (tp + fp)
+    recall = tp / (tp + fn)
+    f1 = 2 * (precision * recall) / (precision + recall)
+    return f1
+
+def group_by_categories(X, column):
+    """
+    Group by data samples by categories of feature in column 'column'.
+    Note that column must represent a categorical feature, otherwise
+    the devision makes no sense.
+    """
+    categories = np.unique(X[:, column])
+    groups = [np.where((X[:, column] == category))[0] for category in [0, 1]]
+    groups.append(np.where(np.logical_or(X[:, column] == 2, X[:, column] == 3))[0])
+
+    return groups

@@ -83,6 +83,24 @@ def logistic_regression_gradient(y, tx, w, lambda_=0):
     return tx.T @ (sigmoid(tx @ w) - y) / y.shape[0] + lambda_ * w
 
 
+def linear(x, weights):
+    if x @ weights < 0:
+        return -1
+    else:
+        return 1
+
+def logistic(x, weights):
+    if sigmoid(x @ weights) >= 0.5:
+        return 1
+    else:
+        return 0
+
+
+def compute_score(y, tx, weights, f=logistic):
+    y_pred = np.array([f(x, weights) for x in tx])
+    return (y_pred == y).sum() / len(y)
+
+
 def split_data(x, y, ratio):
     """
     Split the dataset based on the split ratio.
@@ -192,14 +210,12 @@ def kfolds(n, kfold=10, shuffle=True):
 
     return kfoldsShuffle
 
-
 def outliers_map(x):
     """get outliers position per column"""
     p3, p1 = np.percentile(x[~np.isnan(x)], [98, 2])
     iqr = p3 - p1
     low = p1 - 1.5 * iqr
     high = p3 + 1.5 * iqr
-    # print(p3, p1)
     mask1 = (x < high) & (x > low)
     mask2 = np.isnan(x)
     return mask1 | mask2
@@ -213,8 +229,34 @@ def remove_outliers(x, y):
 
     for i in range(x.shape[1]):
         outliers[:, i] = outliers_map(x[:, i])
-    outliers = (np.sum(outliers, axis=1) == 30)
+
+    outliers = np.sum(outliers, axis=1) == x.shape[1]
     x_copy = x_copy[outliers]
     y_copy = y_copy[outliers]
 
-    return x_copy, y_copy
+    return x_copy, y_copy, outliers
+
+def f1_score(actual, tx, weights, label=1, f=logistic):
+    """ calculate f1-score for the given `label` """
+    predicted = np.array([f(x, weights) for x in tx])
+
+    tp = np.sum((actual == label) & (predicted == label))
+    fp = np.sum((actual != label) & (predicted == label))
+    fn = np.sum((predicted != label) & (actual == label))
+
+    precision = tp / (tp + fp)
+    recall = tp / (tp + fn)
+    f1 = 2 * (precision * recall) / (precision + recall)
+    return f1
+
+def group_by_categories(X, column):
+    """
+    Group by data samples by categories of feature in column 'column'.
+    Note that column must represent a categorical feature, otherwise
+    the devision makes no sense.
+    """
+    categories = np.unique(X[:, column])
+    groups = [np.where((X[:, column] == category))[0] for category in [0, 1]]
+    groups.append(np.where(np.logical_or(X[:, column] == 2, X[:, column] == 3))[0])
+
+    return groups

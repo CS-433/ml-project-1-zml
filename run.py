@@ -33,7 +33,8 @@ if __name__ == "__main__":
     lambdas = [0.0001, 0.0005, 0.0001, 0.0001]
 
     total_correct = 0
-    for i, (traning_group_idx, validation_group_idx, degree, lambda_) in enumerate(zip(traning_groups, validation_groups, degrees, lambdas)):
+    for i, (traning_group_idx, validation_group_idx, degree, lambda_) in enumerate(
+            zip(traning_groups, validation_groups, degrees, lambdas)):
         print('Category', i)
         print('-' * 30)
 
@@ -47,14 +48,14 @@ if __name__ == "__main__":
         weights, _ = implementations.ridge_regression(y_tr_i, x_tr_i, lambda_)
 
         # y_pred = np.array([utils.predictions(x, weights) for x in x_val_i])
-        y_pred = np.array([-1 if x @ weights < 0 else 1  for x in x_val_i])
+        y_pred = np.array([-1 if x @ weights < 0 else 1 for x in x_val_i])
         correct_predict = (y_pred == y_val_i).sum()
         print("Group precision", correct_predict / len(y_val_i))
 
         total_correct += correct_predict
         y_val[validation_group_idx] = y_pred
         print('*' * 30)
-    
+
     print("Validation accuracy", total_correct / len(y_val))
     # print("Ratio", (y_val == 1).sum() / len(y_val))
     # print(y_val)

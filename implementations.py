@@ -3,8 +3,6 @@ from utils import *
 from helpers import *
 
 
-# Todo add comment， maybe add early stop
-
 def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
     """The Gradient Descent (GD) algorithm.
 
@@ -13,7 +11,7 @@ def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
         tx: shape=(N, D)
         initial_w: shape=(D, ). The initial guess (or the initialization) for the model parameters
         max_iters: a scalar denoting the total number of iterations of GD
-        gamma: a scalar denoting the stepsize
+        gamma: a scalar denoting the step size
 
     Returns:
         ws: a list of length max_iters containing the model parameters as numpy arrays of shape (D, ), for each iteration of GD
@@ -41,7 +39,7 @@ def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma):
         tx: shape=(N, D)
         initial_w: shape=(D, ). The initial guess (or the initialization) for the model parameters
         max_iters: a scalar denoting the total number of iterations of SGD
-        gamma: a scalar denoting the stepsize
+        gamma: a scalar denoting the step size
 
     Returns:
         ws: a list of length max_iters containing the model parameters as numpy arrays of shape (D, ), for each iteration of SGD
@@ -86,8 +84,7 @@ def ridge_regression(y, tx, lambda_):
     Args:
         y: numpy array of shape (N,), N is the number of samples.
         tx: numpy array of shape (N, D), D is the number of features.
-        lambda_: scalar.
-        bias_term: true if tx has a bias term
+        lambda_: scalar, ridge regression parameter
 
     Returns:
         w: optimal weights, numpy array of shape(D,), D is the number of features.
@@ -109,8 +106,8 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma, balanced=False):
         tx: shape=(N, D)
         initial_w: shape=(D, ). The initial guess (or the initialization) for the model parameters
         max_iters: a scalar denoting the total number of iterations of SGD
-        gamma: a scalar denoting the stepsize
-        balanced:
+        gamma: a scalar denoting the step size
+        balanced: bool, use the weighted cross-entropy loss if True
 
     Returns:
         ws: a list of length max_iters containing the model parameters as numpy arrays of shape (D, ), for each iteration of SGD
@@ -125,11 +122,11 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma, balance
     Args:
         y: shape=(N, )
         tx: shape=(N, D)
-        lambda_:
+        lambda_: scalar, ridge regression parameter
         initial_w: shape=(D, ). The initial guess (or the initialization) for the model parameters
         max_iters: a scalar denoting the total number of iterations of GD
         gamma: a scalar denoting the step size
-        balanced:
+        balanced: bool, use the weighted cross-entropy loss if True
 
     Returns:
         ws: a list of length max_iters containing the model parameters as numpy arrays of shape (D, ), for each iteration of GD

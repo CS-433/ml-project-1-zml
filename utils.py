@@ -1,10 +1,8 @@
 import numpy as np
 
 
-# loss function
-
 def mean_square_error(y, tx, w):
-    """Calculate the loss using either MSE or MAE.
+    """Calculate the loss using either MSE
 
     Args:
         y: shape=(N, )
@@ -52,7 +50,7 @@ def cross_entropy_loss(y, tx, w, lambda_=0, balanced=False):
         tx: shape=(N, D)
         w:  shape=(D, 1) 
         lambda_: ridge regression parameter
-        balanced: true if balanced loss
+        balanced: set true to balanced loss with class
 
     Returns:
         a non-negative loss
@@ -75,31 +73,12 @@ def logistic_regression_gradient(y, tx, w, lambda_=0):
         y:  shape=(N, 1)
         tx: shape=(N, D)
         w:  shape=(D, 1) 
-        lambda_: true if tx has a bias term
+        lambda_: ridge regression parameter
 
     Returns:
         a vector of shape (D, 1)
     """
     return tx.T @ (sigmoid(tx @ w) - y) / y.shape[0] + lambda_ * w
-
-
-def linear(x, weights):
-    if x @ weights < 0:
-        return -1
-    else:
-        return 1
-
-def logistic(x, weights):
-    if sigmoid(x @ weights) >= 0.5:
-        return 1
-    else:
-        return 0
-
-
-def compute_score(y, tx, weights, f=logistic):
-    y_pred = np.array([f(x, weights) for x in tx])
-    return (y_pred == y).sum() / len(y)
-
 
 def split_data(x, y, ratio):
     """
@@ -126,23 +105,15 @@ def split_data(x, y, ratio):
     return x[perm_tr], x[perm_te], y[perm_tr], y[perm_te]
 
 
-def build_poly(x, degree):
-    """polynomial basis functions for input data x, for j=0 up to j=degree.
-
-    Args:
-        x: numpy array of shape (N, D), N is the number of samples.
-        degree: integer.
-
-    Returns:
-        poly: numpy array of shape (N, degree + 1, D)
-    """
-    res = []
-    for x_i in x:
-        res.append(np.array([x_i ** j for j in range(degree + 1)]))
-    return np.array(res)
-
-
 def logistic(x, weights):
+    """
+        For each sample, get logistic predict result based on weights
+        Args:
+            x: input data
+            weights: trained weight
+        Returns:
+            predicted label
+        """
     if sigmoid(x @ weights) >= 0.5:
         return 1
     else:
@@ -150,6 +121,14 @@ def logistic(x, weights):
 
 
 def linear(x, weights):
+    """
+       For each sample, get linear predict result based on weights
+       Args:
+           x: input data
+           weights: trained weight
+       Returns:
+           predicted label
+       """
     if x @ weights >= 0.5:
         return 1
     else:
@@ -157,16 +136,35 @@ def linear(x, weights):
 
 
 def compute_score(y, tx, weights, f='log'):
-    """Calculate the accuracy"""
-    if f =='log':
+    """
+    compute the accuracy score
+    Args:
+        y: the ground truth label
+        tx: input data
+        weights: trained weight
+        f: the function that should be used to predict label
+
+    Returns:
+        the accuracy score
+    """
+    if f == 'log':
         y_pred = np.array([logistic(x, weights) for x in tx])
-    if f =='linear':
+    if f == 'linear':
         y_pred = np.array([linear(x, weights) for x in tx])
     return (y_pred == y).sum() / len(y)
 
 
 def f1_score(actual, tx, weights, label=1, f='log'):
-    """ calculate f1-score for the given `label` """
+    """ calculate f1-score for the given `label`
+    Args:
+        actual: ground truth label
+        tx: input data
+        weights: trained weight
+        label: the given label
+        f: the function that should be used to predict label
+    Returns:
+
+    """
     if f == 'log':
         predicted = np.array([logistic(x, weights) for x in tx])
     if f == 'linear':
@@ -183,17 +181,7 @@ def f1_score(actual, tx, weights, label=1, f='log'):
     return f1
 
 
-def standardize(x):
-    """Standardize the original data set."""
-    mean_x = np.mean(x,axis=0)
-    x = x - mean_x
-    std_x = np.std(x,axis=0)
-    x = x / std_x
-    return x, mean_x, std_x
 
-
-def add_bias_term(x):
-    return np.concatenate((np.ones((x.shape[0], 1)), x), axis=1)
 
 
 def kfolds(n, kfold=10, shuffle=True):
@@ -209,6 +197,7 @@ def kfolds(n, kfold=10, shuffle=True):
         kfoldsShuffle.append((train_indices, test_indices))
 
     return kfoldsShuffle
+
 
 def outliers_map(x):
     """get outliers position per column"""
@@ -236,24 +225,12 @@ def remove_outliers(x, y):
 
     return x_copy, y_copy, outliers
 
-def f1_score(actual, tx, weights, label=1, f=logistic):
-    """ calculate f1-score for the given `label` """
-    predicted = np.array([f(x, weights) for x in tx])
-
-    tp = np.sum((actual == label) & (predicted == label))
-    fp = np.sum((actual != label) & (predicted == label))
-    fn = np.sum((predicted != label) & (actual == label))
-
-    precision = tp / (tp + fp)
-    recall = tp / (tp + fn)
-    f1 = 2 * (precision * recall) / (precision + recall)
-    return f1
 
 def group_by_categories(X, column):
     """
     Group by data samples by categories of feature in column 'column'.
     Note that column must represent a categorical feature, otherwise
-    the devision makes no sense.
+    the division makes no sense.
     """
     categories = np.unique(X[:, column])
     groups = [np.where((X[:, column] == category))[0] for category in [0, 1]]

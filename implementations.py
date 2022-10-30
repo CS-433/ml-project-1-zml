@@ -30,7 +30,7 @@ def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
         print("iteration {i}/{n}: loss={l}, w={w}".format(
             i=n_iter, n=max_iters - 1, l=loss, w=w))
         # might add early stop
-    return ws[-1], loss[-1]
+    return ws[-1], losses[-1]
 
 
 def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma):

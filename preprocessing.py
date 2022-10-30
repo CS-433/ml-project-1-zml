@@ -12,7 +12,7 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
         y_tr: numpy array of shape (N, 1), N is number of samples,
         y_test:
         degree:
-    Preprocess the input data.
+    Preprocess the input resources.
     1. Replace -999.0 with NaN
     [2. One-hot encoding of column 22]
     3. Add binary feature isNaN for column 0
@@ -30,7 +30,9 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
     """
     # step 1 replacing non-useful values with None
     x_tr[x_tr == -999.0] = np.NaN
-    x_tr[:, -1][x_tr[:, -1] == 0] = np.NaN  # for last column "PRI_jet_all_pt", we recognize that 0.0 represent NaNs
+    x_tr[:, -1][
+        x_tr[:, -1] == 0
+    ] = np.NaN  # for last column "PRI_jet_all_pt", we recognize that 0.0 represent NaNs
     x_test[x_test == -999.0] = np.NaN
     x_test[:, -1][x_test[:, -1] == 0] = np.NaN
 
@@ -52,13 +54,14 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
     # step 5 log heavy tailed features
     log_columns = [0, 1, 2, 3, 5, 8, 9, 10, 12, 13, 16, 19, 21, 23, 26, 29]
     log_columns = list(
-        set(log_columns) - set(columns_to_drop))  # we don't wish to transform columns that we are going to drop anyway
+        set(log_columns) - set(columns_to_drop)
+    )  # we don't wish to transform columns that we are going to drop anyway
     x_tr = log_transform(x_tr, columns=log_columns)
     x_test = log_transform(x_test, columns=log_columns)
 
     # step 6 dropping features
-    '''if 0 not in columns_to_drop:
-        columns_to_drop.append(0)'''
+    """if 0 not in columns_to_drop:
+        columns_to_drop.append(0)"""
 
     unique = True
     if 22 not in columns_to_drop:
@@ -88,11 +91,11 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
     x_test = np.delete(x_test, columns_to_drop, axis=1)
 
     # step 7 remove outliers
-    '''x_tr, y_tr, non_outliers_index_tr = utils.remove_outliers(x_tr, y_tr)
+    """x_tr, y_tr, non_outliers_index_tr = utils.remove_outliers(x_tr, y_tr)
     x_angle_tr = x_angle_tr[non_outliers_index_tr]
     isNan0_tr = isNan0_tr[non_outliers_index_tr]
     if not unique:
-        jet_num_tr = jet_num_tr[non_outliers_index_tr]'''
+        jet_num_tr = jet_num_tr[non_outliers_index_tr]"""
     print("Shape", x_tr.shape)
 
     x_tr = np.hstack((x_tr, np.sin(x_angle_tr), np.cos(x_angle_tr)))
@@ -118,18 +121,26 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
         x_tr = np.hstack((x_tr, jet_num_tr.reshape(-1, 1)))
         x_test = np.hstack((x_test, jet_num_test.reshape(-1, 1)))
 
-    x_tr = np.hstack((x_tr, isNan0_tr,
-        # np.sin(x_angle_tr), np.cos(x_angle_tr)
-    ))
-    x_test = np.hstack((x_test, isNan0_test,
-        # np.sin(x_angle_test), np.cos(x_angle_test)
-    ))
+    x_tr = np.hstack(
+        (
+            x_tr,
+            isNan0_tr,
+            # np.sin(x_angle_tr), np.cos(x_angle_tr)
+        )
+    )
+    x_test = np.hstack(
+        (
+            x_test,
+            isNan0_test,
+            # np.sin(x_angle_test), np.cos(x_angle_test)
+        )
+    )
 
     return x_tr, x_test, y_tr, y_test
 
 
 def standardize(x, mean_x=None, std_x=None):
-    """Standardize the original data set."""
+    """Standardize the original resources set."""
     if mean_x is None:
         mean_x = np.mean(x, axis=0)
     x = x - mean_x
@@ -147,7 +158,7 @@ def add_bias_term(x):
 
     Args:
         x: numpy array of shape (N, D), N is number of samples, D is number of features
-    
+
     Returns:
         x': numpy array of shape (N, D + 1)
     """
@@ -179,7 +190,9 @@ def calculate_feature_medians(X):
     return columns_to_drop, columns_to_fill, feature_medians
 
 
-def fill_features_with_median(X, columns_with_missing_features=None, feature_medians=None):
+def fill_features_with_median(
+    X, columns_with_missing_features=None, feature_medians=None
+):
     """
     Fill missing values of given columns and with respective festure medians. If they are not given,
     calculate them manulally.
@@ -192,7 +205,7 @@ def fill_features_with_median(X, columns_with_missing_features=None, feature_med
     Returns:
         X: numpy array of shape (N, D), with NaN values filled with given medians
     """
-    if (columns_with_missing_features is None or feature_medians is None):
+    if columns_with_missing_features is None or feature_medians is None:
         _, columns_with_missing_features, feature_medians = calculate_feature_medians(X)
 
     for column, median in zip(columns_with_missing_features, feature_medians):
@@ -240,7 +253,9 @@ def calculate_feature_weights(X):
     return collumns_to_drop, columns_to_fill, feature_weights, learning_features
 
 
-def fill_features_with_weights(X, columns_with_missing_features=None, feature_weights=None, learning_features=None):
+def fill_features_with_weights(
+    X, columns_with_missing_features=None, feature_weights=None, learning_features=None
+):
     """
     Fill missing values of given columns and with respective festure medians. If they are not given,
     calculate them manulally.
@@ -253,12 +268,19 @@ def fill_features_with_weights(X, columns_with_missing_features=None, feature_we
     Returns:
         X: numpy array of shape (N, D), with NaN values filled with given medians
     """
-    if (columns_with_missing_features is None or feature_weights is None):
-        _, columns_with_missing_features, feature_weights, learning_features = calculate_feature_weights(X)
+    if columns_with_missing_features is None or feature_weights is None:
+        (
+            _,
+            columns_with_missing_features,
+            feature_weights,
+            learning_features,
+        ) = calculate_feature_weights(X)
 
     columns_wih_full_features = np.where(np.all(~np.isnan(X), axis=0))[0]
     learning_matrix = X[:, columns_wih_full_features]
-    for column, weights, feature in zip(columns_with_missing_features, feature_weights, learning_features):
+    for column, weights, feature in zip(
+        columns_with_missing_features, feature_weights, learning_features
+    ):
         X_i = X[:, column]
         X_learning = learning_matrix[:, feature]
         X_i[np.isnan(X_i)] = X_learning[np.isnan(X_i)] @ weights
@@ -283,11 +305,11 @@ def colums_with_missing_features(X):
 def log_transform(x, columns):
     """
     Transforms heavy taild non-negative features with log transform.
-    Fetures to be transfored were found through process of data analysis.
+    Fetures to be transfored were found through process of resources analysis.
 
     Args:
         x: numpy array of shape (N, D), N is number of samples, D is number of features
-    
+
     Returns:
         x': numpy array of shape (N, D), with log-transformed features where appropiate
     """
@@ -297,7 +319,7 @@ def log_transform(x, columns):
 
 def build_poly_feature(tx, degree):
     """
-    Polynomial basis functions for input data x up to degree 'degree'.
+    Polynomial basis functions for input resources x up to degree 'degree'.
     In addition, perform coupling between each pair of x features.
 
     Args:

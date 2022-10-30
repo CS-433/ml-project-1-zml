@@ -27,8 +27,11 @@ def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
 
         ws.append(w)
         losses.append(loss)
-        print("iteration {i}/{n}: loss={l}, w={w}".format(
-            i=n_iter, n=max_iters - 1, l=loss, w=w))
+        print(
+            "iteration {i}/{n}: loss={l}, w={w}".format(
+                i=n_iter, n=max_iters - 1, l=loss, w=w
+            )
+        )
         # might add early stop
     return ws[-1], losses[-1]
 
@@ -53,13 +56,15 @@ def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma):
         return w, loss
     for n_iter in range(max_iters):
         for minibatch_y, minibatch_tx in batch_iter(y, tx, batch_size=1):
-            w = w - gamma * \
-                linear_regression_gradient(minibatch_y, minibatch_tx, w)
+            w = w - gamma * linear_regression_gradient(minibatch_y, minibatch_tx, w)
         loss = mean_square_error(y, tx, w)
         ws.append(w)
         losses.append(loss)
-        print("SGD iteration {i}/{n}: loss={l}, w={w}".format(
-            i=n_iter, n=max_iters - 1, l=loss, w=w))
+        print(
+            "SGD iteration {i}/{n}: loss={l}, w={w}".format(
+                i=n_iter, n=max_iters - 1, l=loss, w=w
+            )
+        )
         # might add early stop
 
     return ws[-1], losses[-1]
@@ -95,8 +100,7 @@ def ridge_regression(y, tx, lambda_):
         loss: mean square error, scalar.
     """
     n, d = tx.shape
-    weights = np.linalg.solve(
-        tx.T @ tx + 2 * n * lambda_ * np.eye(d), tx.T @ y)
+    weights = np.linalg.solve(tx.T @ tx + 2 * n * lambda_ * np.eye(d), tx.T @ y)
     loss = mean_square_error(y, tx, weights)
 
     return weights, loss
@@ -120,7 +124,9 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma, balanced=False):
     return reg_logistic_regression(y, tx, 0, initial_w, max_iters, gamma, balanced)
 
 
-def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma, balanced=False):
+def reg_logistic_regression(
+    y, tx, lambda_, initial_w, max_iters, gamma, balanced=False
+):
     """The Gradient Descent algorithm (GD).
 
     Args:
@@ -142,14 +148,14 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma, balance
 
     w, ws, losses = initial_w, [initial_w], []
     if max_iters == 0:
-        loss = cross_entropy_loss(y, tx, w, lambda_=lambda_)
+        loss = cross_entropy_loss(y, tx, w, lambda_=0)
         return w, loss
 
-    if gamma != 'adaptive':
+    if gamma != "adaptive":
         for n_iter in range(max_iters):
             gradient = logistic_regression_gradient(y, tx, w, lambda_=lambda_)
             w = w - gamma * gradient
-            loss = cross_entropy_loss(y, tx, w, lambda_=lambda_, balanced=balanced)
+            loss = cross_entropy_loss(y, tx, w, lambda_=0, balanced=balanced)
             ws.append(w)
             losses.append(loss)
             if n_iter % 200 == 0:
@@ -166,12 +172,16 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma, balance
         tl = 0
         tr = 0
         t = 1
-        loss = cross_entropy_loss(y, tx, w, lambda_=lambda_, balanced=balanced)
+        loss = cross_entropy_loss(y, tx, w, lambda_=0, balanced=balanced)
         while True:
-            qt = cross_entropy_loss(y, tx, w + t * gradient, lambda_=lambda_, balanced=balanced)
+            qt = cross_entropy_loss(
+                y, tx, w + t * gradient, lambda_=0, balanced=balanced
+            )
             qp = -gradient.T @ gradient
-            gpt = logistic_regression_gradient(
-                y, tx, w + t * gradient, lambda_=lambda_).T @ gradient
+            gpt = (
+                logistic_regression_gradient(y, tx, w + t * gradient, lambda_=lambda_).T
+                @ gradient
+            )
             if ((qt - loss) / t <= (m1 * qp)) and (gpt >= (m2 * qp)):
                 gamma = t  # we found a good step
                 break
@@ -188,7 +198,7 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma, balance
             if abs(tr - tl) <= tol:
                 break
         w = w + gamma * gradient
-        loss = cross_entropy_loss(y, tx, w, lambda_=lambda_, balanced=balanced)
+        loss = cross_entropy_loss(y, tx, w, lambda_=0, balanced=balanced)
         ws.append(w)
         losses.append(loss)
         if n_iter % 200 == 0:

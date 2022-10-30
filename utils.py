@@ -13,7 +13,7 @@ def mean_square_error(y, tx, w):
         the value of the loss (a scalar), corresponding to the input parameters w.
     """
     error = y - tx @ w
-    return 1 / 2 * np.mean(error ** 2)
+    return 1 / 2 * np.mean(error**2)
 
 
 def linear_regression_gradient(y, tx, w):
@@ -48,7 +48,7 @@ def cross_entropy_loss(y, tx, w, lambda_=0, balanced=False):
     Args:
         y:  shape=(N, 1)
         tx: shape=(N, D)
-        w:  shape=(D, 1) 
+        w:  shape=(D, 1)
         lambda_: ridge regression parameter
         balanced: set true to balanced loss with class
 
@@ -56,14 +56,20 @@ def cross_entropy_loss(y, tx, w, lambda_=0, balanced=False):
         a non-negative loss
     """
     if not balanced:
-        return np.mean(np.log(1 + np.exp(tx @ w)) - y * (tx @ w)) +  lambda_ * np.linalg.norm(w) ** 2
+        return (
+            np.mean(np.log(1 + np.exp(tx @ w)) - y * (tx @ w))
+            + lambda_ * np.linalg.norm(w) ** 2
+        )
     else:
         y_0 = y[np.where(y == 0)]
         beta = y_0.shape[0] / y.shape[0]
         y_hat = sigmoid(tx @ w)
-        return -np.mean(
-            (beta * y * np.log(y_hat) + (1 - beta) * (1 - y) * np.log(1 - y_hat))) + lambda_ * np.linalg.norm(
-            w) ** 2
+        return (
+            -np.mean(
+                (beta * y * np.log(y_hat) + (1 - beta) * (1 - y) * np.log(1 - y_hat))
+            )
+            + lambda_ * np.linalg.norm(w) ** 2
+        )
 
 
 def logistic_regression_gradient(y, tx, w, lambda_=0):
@@ -72,13 +78,14 @@ def logistic_regression_gradient(y, tx, w, lambda_=0):
     Args:
         y:  shape=(N, 1)
         tx: shape=(N, D)
-        w:  shape=(D, 1) 
+        w:  shape=(D, 1)
         lambda_: ridge regression parameter
 
     Returns:
         a vector of shape (D, 1)
     """
     return tx.T @ (sigmoid(tx @ w) - y) / y.shape[0] + 2 * lambda_ * w
+
 
 def split_data(x, y, ratio):
     """
@@ -90,8 +97,8 @@ def split_data(x, y, ratio):
         ratio: scalar in [0,1]
 
     Returns:
-        x_tr: numpy array containing the train data.
-        x_te: numpy array containing the test data.
+        x_tr: numpy array containing the train resources.
+        x_te: numpy array containing the test resources.
         y_tr: numpy array containing the train labels.
         y_te: numpy array containing the test labels.
     """
@@ -107,13 +114,13 @@ def split_data(x, y, ratio):
 
 def logistic(x, weights):
     """
-        For each sample, get logistic predict result based on weights
-        Args:
-            x: input data
-            weights: trained weight
-        Returns:
-            predicted label
-        """
+    For each sample, get logistic predict result based on weights
+    Args:
+        x: input resources
+        weights: trained weight
+    Returns:
+        predicted label
+    """
     if sigmoid(x @ weights) >= 0.5:
         return 1
     else:
@@ -122,52 +129,52 @@ def logistic(x, weights):
 
 def linear(x, weights):
     """
-       For each sample, get linear predict result based on weights
-       Args:
-           x: input data
-           weights: trained weight
-       Returns:
-           predicted label
-       """
+    For each sample, get linear predict result based on weights
+    Args:
+        x: input resources
+        weights: trained weight
+    Returns:
+        predicted label
+    """
     if x @ weights >= 0.5:
         return 1
     else:
         return 0
 
 
-def compute_score(y, tx, weights, f='log'):
+def compute_score(y, tx, weights, f="log"):
     """
     compute the accuracy score
     Args:
         y: the ground truth label
-        tx: input data
+        tx: input resources
         weights: trained weight
         f: the function that should be used to predict label
 
     Returns:
         the accuracy score
     """
-    if f == 'log':
+    if f == "log":
         y_pred = np.array([logistic(x, weights) for x in tx])
-    if f == 'linear':
+    if f == "linear":
         y_pred = np.array([linear(x, weights) for x in tx])
     return (y_pred == y).sum() / len(y)
 
 
-def f1_score(actual, tx, weights, label=1, f='log'):
-    """ calculate f1-score for the given `label`
+def f1_score(actual, tx, weights, label=1, f="log"):
+    """calculate f1-score for the given `label`
     Args:
         actual: ground truth label
-        tx: input data
+        tx: input resources
         weights: trained weight
         label: the given label
         f: the function that should be used to predict label
     Returns:
 
     """
-    if f == 'log':
+    if f == "log":
         predicted = np.array([logistic(x, weights) for x in tx])
-    if f == 'linear':
+    if f == "linear":
         predicted = np.array([linear(x, weights) for x in tx])
 
     tp = np.sum((actual == label) & (predicted == label))
@@ -189,8 +196,8 @@ def kfolds(n, kfold=10, shuffle=True):
 
     kfoldsShuffle, div = [], int(n / kfold)
     for i in range(kfold):
-        test_indices = perm[div * i: div * (i + 1)]
-        train_indices = np.concatenate((perm[:div * i], perm[div * (i + 1):]))
+        test_indices = perm[div * i : div * (i + 1)]
+        train_indices = np.concatenate((perm[: div * i], perm[div * (i + 1) :]))
         kfoldsShuffle.append((train_indices, test_indices))
 
     return kfoldsShuffle
@@ -225,7 +232,7 @@ def remove_outliers(x, y):
 
 def group_by_categories(X, column):
     """
-    Group by data samples by categories of feature in column 'column'.
+    Group by resources samples by categories of feature in column 'column'.
     Note that column must represent a categorical feature, otherwise
     the division makes no sense.
     """

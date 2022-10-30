@@ -1,10 +1,17 @@
 # CS-433 Machine Learning Project 1 
 ## Higgs Boson Classification
 
+### Team
+The project is accomplished by team **ZML** with members:
+
+Marko Lisicic: @mrfox99
+Lazar Milikic: @Lemmy00
+Yurui Zhu: @ruiarui
+
 ### Project Outline
 
 todo
-
+With a Test Accuracy of 0.839
 ### Code Structure
 ```
 ├── implementaions.py: Implementations of 6 ML function

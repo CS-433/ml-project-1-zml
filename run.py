@@ -5,14 +5,7 @@ import helpers
 
 import numpy as np
 
-#####
-# GOING beyond:
-# - adding boolean if missing features
-# - improving poly build, including sins for angles
-# - voting
-# - tune following F1 score?
-# - group 2 and 3
-#####
+
 if __name__ == "__main__":
     # load data
 
@@ -23,19 +16,19 @@ if __name__ == "__main__":
     ### y[np.where(y == -1)] = 0
 
     # split data for validation
-    x_tr, x_val, y_tr, y_val = utils.split_data(X, y, 0.8)
-    # y_val, x_val, ids = helpers.load_csv_data(path="resources/test.csv")
+    x_tr, x_val, y_tr, y_val = utils.split_data(X, y, 1)
+    y_val, x_val, ids = helpers.load_csv_data(path="resources/test.csv")
 
     # split by jet
     traning_groups = utils.group_by_categories(x_tr, column=22)
     validation_groups = utils.group_by_categories(x_val, column=22)
-    degrees = [12, 10, 12, 12]
-    lambdas = [0.0001, 0.0005, 0.0001, 0.0001]
+    degrees = [12, 12, 12, 12]
+    lambdas = [0.0001, 0.0, 0.0, 0.0]
 
     total_correct = 0
     for i, (traning_group_idx, validation_group_idx, degree, lambda_) in enumerate(
             zip(traning_groups, validation_groups, degrees, lambdas)):
-        print('Category', i)
+        print('PRI_jet_num =', i)
         print('-' * 30)
 
         x_tr_i, y_tr_i = x_tr[traning_group_idx], y_tr[traning_group_idx]
@@ -49,15 +42,15 @@ if __name__ == "__main__":
 
         # y_pred = np.array([utils.predictions(x, weights) for x in x_val_i])
         y_pred = np.array([-1 if x @ weights < 0 else 1 for x in x_val_i])
-        correct_predict = (y_pred == y_val_i).sum()
-        print("Group precision", correct_predict / len(y_val_i))
+        # correct_predict = (y_pred == y_val_i).sum()
+        # print("Group precision", correct_predict / len(y_val_i))
 
-        total_correct += correct_predict
+        # total_correct += correct_predict
         y_val[validation_group_idx] = y_pred
         print('*' * 30)
 
-    print("Validation accuracy", total_correct / len(y_val))
-    # print("Ratio", (y_val == 1).sum() / len(y_val))
-    # print(y_val)
+    # print("Validation accuracy", total_correct / len(y_val))
+    print("Ratio", (y_val == 1).sum() / len(y_val))
+    print(y_val)
 
-    # helpers.create_csv_submission(ids, y_val, "lm3.csv")
+    helpers.create_csv_submission(ids, y_val, "lm5.csv")

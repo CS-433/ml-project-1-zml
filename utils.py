@@ -62,7 +62,7 @@ def cross_entropy_loss(y, tx, w, lambda_=0, balanced=False):
         beta = y_0.shape[0] / y.shape[0]
         y_hat = sigmoid(tx @ w)
         return -np.mean(
-            (beta * y * np.log(y_hat) + (1 - beta) * (1 - y) * np.log(1 - y_hat))) + 0.5 * lambda_ * np.linalg.norm(
+            (beta * y * np.log(y_hat) + (1 - beta) * (1 - y) * np.log(1 - y_hat))) + lambda_ * np.linalg.norm(
             w) ** 2
 
 
@@ -78,7 +78,7 @@ def logistic_regression_gradient(y, tx, w, lambda_=0):
     Returns:
         a vector of shape (D, 1)
     """
-    return tx.T @ (sigmoid(tx @ w) - y) / y.shape[0] + lambda_ * w
+    return tx.T @ (sigmoid(tx @ w) - y) / y.shape[0] + 2 * lambda_ * w
 
 def split_data(x, y, ratio):
     """
@@ -179,9 +179,6 @@ def f1_score(actual, tx, weights, label=1, f='log'):
     recall = tp / (tp + fn)
     f1 = 2 * (precision * recall) / (precision + recall)
     return f1
-
-
-
 
 
 def kfolds(n, kfold=10, shuffle=True):

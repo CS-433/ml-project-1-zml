@@ -6,9 +6,6 @@ import numpy as np
 
 def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
     """
-    Args:
-        x_train: numpy array of shape (N, D), N is number of samples, D is number of features, representing training set
-        x_test: numpy array of shape (N', D), N is number of samples, D is number of features, representing testing/validation set
     Preprocess the input data.
     1. Replace -999.0 with NaN
     [2. One-hot encoding of column 22]
@@ -20,50 +17,58 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
     8. Standardize
     9. Add bias or build polynomial features
     10. Add angle features
+
+    Args:
+        x_train: numpy array of shape (N, D), N is number of samples, D is number of features, representing training set
+        x_test: numpy array of shape (N', D), N is number of samples, D is number of features, representing testing/validation set
+    
     Returns:
         x_train': numpy array of preprocessed x_train
         x_test': numpy array of preprocessed x_test
-
     """
     # step 1 replacing non-useful values with None
     x_tr[x_tr == -999.0] = np.NaN
-    x_tr[:, -1][x_tr[:, -1] == 0] = np.NaN  # for last column "PRI_jet_all_pt", we recognize that 0.0 represent NaNs
     x_test[x_test == -999.0] = np.NaN
-    x_test[:, -1][x_test[:, -1] == 0] = np.NaN
 
     # setp 3
     isNan0_tr = (np.isnan(x_tr[:, 0]) * 1).reshape(-1, 1)
     isNan0_test = (np.isnan(x_test[:, 0]) * 1).reshape(-1, 1)
 
     # step 4 filling up missing values
-    # columns_to_drop, columns_to_fill, feature_medians = calculate_feature_medians(x_tr)
-    # x_tr = fill_features_with_median(x_tr, columns_to_fill, feature_medians)
-    # x_test = fill_features_with_median(x_test, columns_to_fill, feature_medians)
+    columns_to_drop, columns_to_fill, feature_medians = calculate_feature_medians(x_tr)
+    x_tr = fill_features_with_median(x_tr, columns_to_fill, feature_medians)
+    x_test = fill_features_with_median(x_test, columns_to_fill, feature_medians)
 
-    columns_to_drop, columns_to_fill, feature_weights, learning_features = calculate_feature_weights(x_tr)
-    x_tr = fill_features_with_weights(x_tr, columns_to_fill, feature_weights, learning_features)
-    x_test = fill_features_with_weights(x_test, columns_to_fill, feature_weights, learning_features)
+    # columns_to_drop, columns_to_fill, feature_weights, learning_features = calculate_feature_weights(x_tr)
+    # x_tr = fill_features_with_weights(x_tr, columns_to_fill, feature_weights, learning_features)
+    # x_test = fill_features_with_weights(x_test, columns_to_fill, feature_weights, learning_features)
+    
+    # columns_to_drop = colums_with_missing_features(x_tr)
 
     # setp 5 log havy tailed features
-    log_columns = [1, 2, 3, 5, 8, 9, 10, 12, 13, 16, 19, 21, 23, 26, 29]
+    log_columns = [0, 1, 2, 3, 5, 8, 9, 10, 12, 13, 16, 19, 21, 23, 26, 29]
     log_columns = list(
         set(log_columns) - set(columns_to_drop))  # we don't wish to transform columns that we are going to drop anyway
     x_tr = log_transform(x_tr, columns=log_columns)
     x_test = log_transform(x_test, columns=log_columns)
 
     # step 6 dropping features
-    if 0 not in columns_to_drop:
-        columns_to_drop.append(0)
+    '''if 0 not in columns_to_drop:
+        columns_to_drop.append(0)'''
+
+    unique = True
     if 22 not in columns_to_drop:
-        categories = np.unique(x_tr[:, 22])
-        if len(categories) > 1:
+        unique = len(np.unique(x_tr[:, 22])) == 1
+        if not unique:
             x_tr[:, 22][x_tr[:, 22] == 2] == 0
             x_tr[:, 22][x_tr[:, 22] == 3] == 1
+            jet_num_tr = x_tr[:, 22].copy()
 
             x_test[:, 22][x_test[:, 22] == 2] == 0
             x_test[:, 22][x_test[:, 22] == 3] == 1
-        else:
-            columns_to_drop.append(22)
+            jet_num_test = x_test[:, 22].copy()
+        
+        columns_to_drop.append(22)
 
     columns_angle = []
     for col in [15, 18, 20, 25, 28]:
@@ -79,9 +84,15 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
     x_test = np.delete(x_test, columns_to_drop, axis=1)
 
     # step 7 remove outliers
-    x_tr, y_tr, non_outliers_index_tr = utils.remove_outliers(x_tr, y_tr)
+    '''x_tr, y_tr, non_outliers_index_tr = utils.remove_outliers(x_tr, y_tr)
     x_angle_tr = x_angle_tr[non_outliers_index_tr]
     isNan0_tr = isNan0_tr[non_outliers_index_tr]
+    if not unique:
+        jet_num_tr = jet_num_tr[non_outliers_index_tr]'''
+    print("Shape", x_tr.shape)
+
+    x_tr = np.hstack((x_tr, np.sin(x_angle_tr), np.cos(x_angle_tr)))
+    x_test = np.hstack((x_test, np.sin(x_angle_test), np.cos(x_angle_test)))
 
     # setp 8 standardization of features
     x_tr, mean_x, std_x = standardize(x_tr)
@@ -96,8 +107,19 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
         x_test = build_poly_feature(x_test, degree)
 
     # step 10 merge all features
-    x_tr = np.hstack((x_tr, isNan0_tr, np.sin(x_angle_tr), np.cos(x_angle_tr)))
-    x_test = np.hstack((x_test, isNan0_test, np.sin(x_angle_test), np.cos(x_angle_test)))
+    # x_tr = np.hstack((x_tr, isNan0_tr, np.sin(x_angle_tr), np.cos(x_angle_tr)))
+    # x_test = np.hstack((x_test, isNan0_test, np.sin(x_angle_test), np.cos(x_angle_test)))
+    if not unique:
+        print("Shape3", x_tr.shape, jet_num_tr.shape)
+        x_tr = np.hstack((x_tr, jet_num_tr.reshape(-1, 1)))
+        x_test = np.hstack((x_test, jet_num_test.reshape(-1, 1)))
+
+    x_tr = np.hstack((x_tr, isNan0_tr, 
+        # np.sin(x_angle_tr), np.cos(x_angle_tr)
+    ))
+    x_test = np.hstack((x_test, isNan0_test,
+        # np.sin(x_angle_test), np.cos(x_angle_test)
+    ))
 
     return x_tr, x_test, y_tr, y_test
 
@@ -238,6 +260,20 @@ def fill_features_with_weights(X, columns_with_missing_features=None, feature_we
         X_i[np.isnan(X_i)] = X_learning[np.isnan(X_i)] @ weights
 
     return X
+
+
+def colums_with_missing_features(X):
+    """
+    Return indices of columns of X that have at least one missing value.
+
+    Args:
+        X: numpy array of shape (N, D), N is number of samples, D is number of features
+
+    Returns:
+        not_full_columns: list of indices of columns with at least one missing value
+    """
+    not_full_columns = np.where(np.any(np.isnan(X), axis=0))[0]
+    return list(not_full_columns)
 
 
 def log_transform(x, columns):

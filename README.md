@@ -1,7 +1,7 @@
 # CS-433 Machine Learning Project 1 
-## Higgs Boson Classification
+# Higgs Boson Classification
 
-### Team
+## Team
 The project is accomplished by team **ZML** with members:
 
 Marko Lisicic: @mrfox99
@@ -10,11 +10,13 @@ Lazar Milikic: @Lemmy00
 
 Yurui Zhu: @ruiarui
 
-### Project Outline
+## Project Outline
 
 todo
 With a Test Accuracy of 0.839
-### Code Structure
+
+
+## Code Structure
 ```
 ├── implementaions.py: Implementations of 6 ML function
 ├── run.py: Python file for regenerating our final/best prediction.
@@ -28,7 +30,7 @@ With a Test Accuracy of 0.839
     ├── train.csv
     ├── test.csv
 ```
-### Guideline
+## Guideline
 
 To successfully run this project, modules including `numpy`, `matplotlib` and `csv` are required. And training and test 
 file should be placed into `resources` folder named `train.csv` and `test.csv`

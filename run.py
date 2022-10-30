@@ -20,31 +20,31 @@ if __name__ == "__main__":
     y, X, _ = helpers.load_csv_data(path="resources/train.csv")
 
     # convert labels to be only 0 and 1
-    ### y[np.where(y == -1)] = 0
+    # y[np.where(y == -1)] = 0
 
     # split data for validation
     x_tr, x_val, y_tr, y_val = utils.split_data(X, y, 0.8)
     # y_val, x_val, ids = helpers.load_csv_data(path="resources/test.csv")
 
     # split by jet
-    traning_groups = utils.group_by_categories(x_tr, column=22)
+    training_groups = utils.group_by_categories(x_tr, column=22)
     validation_groups = utils.group_by_categories(x_val, column=22)
     degrees = [12, 10, 12, 12]
     lambdas = [0.0001, 0.0005, 0.0001, 0.0001]
 
     total_correct = 0
-    for i, (traning_group_idx, validation_group_idx, degree, lambda_) in enumerate(
-            zip(traning_groups, validation_groups, degrees, lambdas)):
+    for i, (training_group_idx, validation_group_idx, degree, lambda_) in enumerate(
+            zip(training_groups, validation_groups, degrees, lambdas)):
         print('Category', i)
         print('-' * 30)
 
-        x_tr_i, y_tr_i = x_tr[traning_group_idx], y_tr[traning_group_idx]
+        x_tr_i, y_tr_i = x_tr[training_group_idx], y_tr[training_group_idx]
         x_val_i, y_val_i = x_val[validation_group_idx], y_val[validation_group_idx]
 
         x_tr_i, x_val_i, y_tr_i, y_val_i = preprocessing.preprocess_data(x_tr_i, x_val_i, y_tr_i, y_val_i, degree)
 
         '''weights, _ = implementations.reg_logistic_regression(
-            y_tr_i, x_tr_i, 0, np.zeros(x_tr_i.shape[1]), max_iters=10000, gamma=0.2)'''
+            y_tr_i, x_tr_i, 0, np.zeros(x_tr_i.shape[1]), max_iters=10000, gamma='adaptive')'''
         weights, _ = implementations.ridge_regression(y_tr_i, x_tr_i, lambda_)
 
         # y_pred = np.array([utils.predictions(x, weights) for x in x_val_i])

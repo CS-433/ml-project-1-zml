@@ -142,35 +142,51 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma, balance
 
     w, ws, losses = initial_w, [initial_w], []
     if max_iters == 0:
-        loss = cross_entropy_loss(y, tx, w)
+        loss = cross_entropy_loss(y, tx, w, lambda_=lambda_)
         return w, loss
-    for n_iter in range(max_iters):
-        gradient = -logistic_regression_gradient(y, tx, w, lambda_=lambda_)
 
+    if gamma != 'adaptive':
+        for n_iter in range(max_iters):
+            gradient = logistic_regression_gradient(y, tx, w, lambda_=lambda_)
+            w = w - gamma * gradient
+            loss = cross_entropy_loss(y, tx, w, lambda_=lambda_, balanced=balanced)
+            ws.append(w)
+            losses.append(loss)
+            if n_iter % 200 == 0:
+                print(f"Iteration {n_iter + 1}/{max_iters}: loss={loss}")
+
+            if n_iter > 1 and np.abs(losses[-1] - losses[-2]) < tol:
+                break
+
+        return ws[-1], losses[-1]
+
+    for n_iter in range(max_iters):
+        print("Using adaptive gamma to predict")
+        gradient = -logistic_regression_gradient(y, tx, w, lambda_=lambda_)
         tl = 0
         tr = 0
         t = 1
-        # while True:
-        #     qt = cross_entropy_loss(y, tx, w + t * gradient, lambda_=lambda_, balanced=balanced)
-        #     qp = -gradient.T @ gradient
-        #     gpt = logistic_regression_gradient(
-        #         y, tx, w + t * gradient, lambda_=lambda_).T @ gradient
-        #     if ((qt - loss) / t <= (m1 * qp)) and (gpt >= (m2 * qp)):
-        #         gamma = t  # we found a good step
-        #         break
-        #     if (qt - loss) / t > (m1 * qp):
-        #         # step too big
-        #         tr = t
-        #     if ((qt - loss) / t <= (m1 * qp)) and (gpt < (m2 * qp)):
-        #         # step too small
-        #         tl = t
-        #     if tr == 0:
-        #         t = 2 * tl
-        #     else:
-        #         t = 0.5 * (tl + tr)
-        #     if abs(tr - tl) <= tol:
-        #         break
-
+        loss = cross_entropy_loss(y, tx, w, lambda_=lambda_, balanced=balanced)
+        while True:
+            qt = cross_entropy_loss(y, tx, w + t * gradient, lambda_=lambda_, balanced=balanced)
+            qp = -gradient.T @ gradient
+            gpt = logistic_regression_gradient(
+                y, tx, w + t * gradient, lambda_=lambda_).T @ gradient
+            if ((qt - loss) / t <= (m1 * qp)) and (gpt >= (m2 * qp)):
+                gamma = t  # we found a good step
+                break
+            if (qt - loss) / t > (m1 * qp):
+                # step too big
+                tr = t
+            if ((qt - loss) / t <= (m1 * qp)) and (gpt < (m2 * qp)):
+                # step too small
+                tl = t
+            if tr == 0:
+                t = 2 * tl
+            else:
+                t = 0.5 * (tl + tr)
+            if abs(tr - tl) <= tol:
+                break
         w = w + gamma * gradient
         loss = cross_entropy_loss(y, tx, w, lambda_=lambda_, balanced=balanced)
         ws.append(w)

@@ -63,7 +63,7 @@ def cross_entropy_loss(y, tx, w, lambda_=0, balanced=False):
         beta = y_0.shape[0] / y.shape[0]
         y_hat = sigmoid(tx @ w)
         return -np.mean(
-            (beta * y * np.log(y_hat) + (1 - beta) * (1 - y) * np.log(1 - y_hat))) + 0.5 * lambda_ * np.linalg.norm(
+            (beta * y * np.log(y_hat) + (1 - beta) * (1 - y) * np.log(1 - y_hat))) + lambda_ * np.linalg.norm(
             w) ** 2
 
 

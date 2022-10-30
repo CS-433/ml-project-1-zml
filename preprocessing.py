@@ -7,8 +7,12 @@ import numpy as np
 def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
     """
     Args:
-        x_train: numpy array of shape (N, D), N is number of samples, D is number of features, representing training set
-        x_test: numpy array of shape (N', D), N is number of samples, D is number of features, representing testing/validation set
+
+        x_tr: numpy array of shape (N, D), N is number of samples, D is number of features, representing training set
+        x_test: numpy array of shape (N', D), N' is number of samples, D is number of features, representing testing/validation set
+        y_tr: numpy array of shape (N, 1), N is number of samples,
+        y_test:
+        degree:
     Preprocess the input data.
     1. Replace -999.0 with NaN
     [2. One-hot encoding of column 22]
@@ -31,7 +35,7 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
     x_test[x_test == -999.0] = np.NaN
     x_test[:, -1][x_test[:, -1] == 0] = np.NaN
 
-    # setp 3
+    # step 3
     isNan0_tr = (np.isnan(x_tr[:, 0]) * 1).reshape(-1, 1)
     isNan0_test = (np.isnan(x_test[:, 0]) * 1).reshape(-1, 1)
 
@@ -44,7 +48,7 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
     x_tr = fill_features_with_weights(x_tr, columns_to_fill, feature_weights, learning_features)
     x_test = fill_features_with_weights(x_test, columns_to_fill, feature_weights, learning_features)
 
-    # setp 5 log havy tailed features
+    # step 5 log heavy tailed features
     log_columns = [1, 2, 3, 5, 8, 9, 10, 12, 13, 16, 19, 21, 23, 26, 29]
     log_columns = list(
         set(log_columns) - set(columns_to_drop))  # we don't wish to transform columns that we are going to drop anyway
@@ -278,4 +282,4 @@ def build_poly_feature(tx, degree):
         for j in range(i + 1, D):
             product = tx[:, i] * tx[:, j]
             poly = np.c_[poly, product]
-    return poly
+    return add_bias_term(poly)

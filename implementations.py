@@ -18,17 +18,19 @@ def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
         losses: a list of length max_iters containing the loss value (scalar) for each iteration of GD
     """
     w, ws, losses = initial_w, [initial_w], []
-    for n_iter in range(max_iters):
+    if max_iters == 0:
         loss = mean_square_error(y, tx, w)
+        return w, loss
+    for n_iter in range(max_iters):
         w = w - gamma * linear_regression_gradient(y, tx, w)
+        loss = mean_square_error(y, tx, w)
 
         ws.append(w)
         losses.append(loss)
         print("iteration {i}/{n}: loss={l}, w={w}".format(
             i=n_iter, n=max_iters - 1, l=loss, w=w))
         # might add early stop
-
-    return ws[-1], losses[-1]
+    return ws[-1], loss[-1]
 
 
 def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma):
@@ -46,12 +48,14 @@ def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma):
         losses: a list of length max_iters containing the loss value (scalar) for each iteration of SGD
     """
     w, ws, losses = initial_w, [initial_w], []
-    for n_iter in range(max_iters):
+    if max_iters == 0:
         loss = mean_square_error(y, tx, w)
+        return w, loss
+    for n_iter in range(max_iters):
         for minibatch_y, minibatch_tx in batch_iter(y, tx, batch_size=1):
             w = w - gamma * \
                 linear_regression_gradient(minibatch_y, minibatch_tx, w)
-
+        loss = mean_square_error(y, tx, w)
         ws.append(w)
         losses.append(loss)
         print("SGD iteration {i}/{n}: loss={l}, w={w}".format(
@@ -117,7 +121,7 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma, balanced=False):
 
 
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma, balanced=False):
-    """The Stochastic Gradient Descent algorithm (SGD).
+    """The Gradient Descent algorithm (GD).
 
     Args:
         y: shape=(N, )
@@ -130,43 +134,45 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma, balance
 
     Returns:
         ws: a list of length max_iters containing the model parameters as numpy arrays of shape (D, ), for each iteration of GD
-        losses: a list of length max_iters containing the loss value (scalar) for each iteration of SGD
+        losses: a list of length max_iters containing the loss value (scalar) for each iteration of GD
     """
     m1 = 0.1  # Parameters for Goldstein-Price
     m2 = 0.9
     tol = 1e-8
 
     w, ws, losses = initial_w, [initial_w], []
+    if max_iters == 0:
+        loss = cross_entropy_loss(y, tx, w)
+        return w, loss
     for n_iter in range(max_iters):
-        loss = cross_entropy_loss(y, tx, w, lambda_=lambda_, balanced=balanced)
         gradient = -logistic_regression_gradient(y, tx, w, lambda_=lambda_)
 
         tl = 0
         tr = 0
         t = 1
-        while True:
-            qt = cross_entropy_loss(y, tx, w + t * gradient, lambda_=lambda_, balanced=balanced)
-            qp = -gradient.T @ gradient
-            gpt = logistic_regression_gradient(
-                y, tx, w + t * gradient, lambda_=lambda_).T @ gradient
-            if ((qt - loss) / t <= (m1 * qp)) and (gpt >= (m2 * qp)):
-                gamma = t  # we found a good step
-                break
-            if (qt - loss) / t > (m1 * qp):
-                # step too big
-                tr = t
-            if ((qt - loss) / t <= (m1 * qp)) and (gpt < (m2 * qp)):
-                # step too small
-                tl = t
-            if tr == 0:
-                t = 2 * tl
-            else:
-                t = 0.5 * (tl + tr)
-            if abs(tr - tl) <= tol:
-                break
+        # while True:
+        #     qt = cross_entropy_loss(y, tx, w + t * gradient, lambda_=lambda_, balanced=balanced)
+        #     qp = -gradient.T @ gradient
+        #     gpt = logistic_regression_gradient(
+        #         y, tx, w + t * gradient, lambda_=lambda_).T @ gradient
+        #     if ((qt - loss) / t <= (m1 * qp)) and (gpt >= (m2 * qp)):
+        #         gamma = t  # we found a good step
+        #         break
+        #     if (qt - loss) / t > (m1 * qp):
+        #         # step too big
+        #         tr = t
+        #     if ((qt - loss) / t <= (m1 * qp)) and (gpt < (m2 * qp)):
+        #         # step too small
+        #         tl = t
+        #     if tr == 0:
+        #         t = 2 * tl
+        #     else:
+        #         t = 0.5 * (tl + tr)
+        #     if abs(tr - tl) <= tol:
+        #         break
 
         w = w + gamma * gradient
-
+        loss = cross_entropy_loss(y, tx, w, lambda_=lambda_, balanced=balanced)
         ws.append(w)
         losses.append(loss)
         if n_iter % 200 == 0:

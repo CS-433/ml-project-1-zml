@@ -51,8 +51,8 @@ if __name__ == "__main__":
                     f1_lambda = lambda_
 
         print('-' * 50)
-        print(f"At cat={i}, the best score={accuracy} is given for degree={best_degree} and lambda={lambda_}")
-        print(f"At cat={i}, the best f1={best_f1} is given for degree={f1_degree} and lambda={f1_lambda}")
+        print(f"For PRI_jet_num={i}, the best score={accuracy} is given for degree={best_degree} and lambda={lambda_}")
+        print(f"For PRI_jet_num={i}, the best f1={best_f1} is given for degree={f1_degree} and lambda={f1_lambda}")
         print('*' * 50)
 
 

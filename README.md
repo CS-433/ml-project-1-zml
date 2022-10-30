@@ -5,7 +5,9 @@
 The project is accomplished by team **ZML** with members:
 
 Marko Lisicic: @mrfox99
+
 Lazar Milikic: @Lemmy00
+
 Yurui Zhu: @ruiarui
 
 ### Project Outline

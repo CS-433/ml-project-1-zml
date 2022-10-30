@@ -19,12 +19,11 @@ if __name__ == "__main__":
     x_tr, x_val, y_tr, y_val = utils.split_data(X, y, 0.8)
     y_val, x_val, ids = helpers.load_csv_data(path="resources/test.csv")
     
-    print(y_val.shape)
     # split by jet
     training_groups = utils.group_by_categories(x_tr, column=22)
     validation_groups = utils.group_by_categories(x_val, column=22)
-    degrees = [15, 16, 15, 12]
-    lambdas = [0.0001, 0.0001, 0.0005, 0.0]
+    degrees = [15, 16, 15]
+    lambdas = [0.0001, 0.0001, 0.0005]
 
     total_correct = 0
     for i, (training_group_idx, validation_group_idx, degree, lambda_) in enumerate(

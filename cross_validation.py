@@ -8,7 +8,7 @@ import numpy as np
 if __name__ == "__main__":
     y, X, ids = helpers.load_csv_data(path="resources/train.csv")
 
-    lambdas = [0, 0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5]
+    lambdas = [0, 0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 5, 10]
     degrees = [i for i in range(13, 17)]
 
     traning_groups = utils.group_by_categories(X, column=22)

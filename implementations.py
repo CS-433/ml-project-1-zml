@@ -148,14 +148,14 @@ def reg_logistic_regression(
 
     w, ws, losses = initial_w, [initial_w], []
     if max_iters == 0:
-        loss = cross_entropy_loss(y, tx, w, lambda_=0)
+        loss = cross_entropy_loss(y, tx, w)
         return w, loss
 
     if gamma != "adaptive":
         for n_iter in range(max_iters):
             gradient = logistic_regression_gradient(y, tx, w, lambda_=lambda_)
             w = w - gamma * gradient
-            loss = cross_entropy_loss(y, tx, w, lambda_=0, balanced=balanced)
+            loss = cross_entropy_loss(y, tx, w, balanced=balanced)
             ws.append(w)
             losses.append(loss)
             if n_iter % 200 == 0:
@@ -172,10 +172,10 @@ def reg_logistic_regression(
         tl = 0
         tr = 0
         t = 1
-        loss = cross_entropy_loss(y, tx, w, lambda_=0, balanced=balanced)
+        loss = cross_entropy_loss(y, tx, w, balanced=balanced)
         while True:
             qt = cross_entropy_loss(
-                y, tx, w + t * gradient, lambda_=0, balanced=balanced
+                y, tx, w + t * gradient, balanced=balanced
             )
             qp = -gradient.T @ gradient
             gpt = (
@@ -198,7 +198,7 @@ def reg_logistic_regression(
             if abs(tr - tl) <= tol:
                 break
         w = w + gamma * gradient
-        loss = cross_entropy_loss(y, tx, w, lambda_=0, balanced=balanced)
+        loss = cross_entropy_loss(y, tx, w, balanced=balanced)
         ws.append(w)
         losses.append(loss)
         if n_iter % 200 == 0:

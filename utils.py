@@ -56,7 +56,6 @@ def cross_entropy_loss(y, tx, w, lambda_=0, balanced=False):
         a non-negative loss
     """
     if not balanced:
-        y_hat = sigmoid(tx @ w)
         return np.mean(np.log(1 + np.exp(tx @ w)) - y * (tx @ w)) +  lambda_ * np.linalg.norm(w) ** 2
     else:
         y_0 = y[np.where(y == 0)]
@@ -80,7 +79,6 @@ def logistic_regression_gradient(y, tx, w, lambda_=0):
         a vector of shape (D, 1)
     """
     return tx.T @ (sigmoid(tx @ w) - y) / y.shape[0] + 2 * lambda_ * w
-
 
 def split_data(x, y, ratio):
     """

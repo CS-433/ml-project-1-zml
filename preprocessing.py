@@ -6,12 +6,6 @@ import numpy as np
 
 def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
     """
-    Args:
-        x_tr: numpy array of shape (N, D), N is number of samples, D is number of features, representing training set
-        x_test: numpy array of shape (N', D), N' is number of samples, D is number of features, representing testing/validation set
-        y_tr: numpy array of shape (N, 1), N is number of samples,
-        y_test:
-        degree:
     Preprocess the input resources.
     1. Replace -999.0 with NaN
     [2. One-hot encoding of column 22]
@@ -23,22 +17,27 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
     8. Standardize
     9. Add bias or build polynomial features
     10. Add angle features
+
+    Args:
+        x_tr: numpy array of shape (N, D), N is number of samples, D is number of features, representing training set
+        x_test: numpy array of shape (N', D), N' is number of samples, D is number of features, representing testing/validation set
+        y_tr: numpy array of shape (N, 1), N is number of samples,
+        y_test:
+        degree:
+
     Returns:
         x_train': numpy array of preprocessed x_train
         x_test': numpy array of preprocessed x_test
-
     """
     # step 1 replacing non-useful values with None
     x_tr[x_tr == -999.0] = np.NaN
-    x_tr[:, -1][
-        x_tr[:, -1] == 0
-    ] = np.NaN  # for last column "PRI_jet_all_pt", we recognize that 0.0 represent NaNs
+    # x_tr[:, -1][x_tr[:, -1] == 0] = np.NaN 
     x_test[x_test == -999.0] = np.NaN
-    x_test[:, -1][x_test[:, -1] == 0] = np.NaN
+    # x_test[:, -1][x_test[:, -1] == 0] = np.NaN
 
     # step 3
-    isNan0_tr = (np.isnan(x_tr[:, 0]) * 1).reshape(-1, 1)
-    isNan0_test = (np.isnan(x_test[:, 0]) * 1).reshape(-1, 1)
+    isNan_DER_mass_MMC_tr = (np.isnan(x_tr[:, 0]) * 1).reshape(-1, 1)
+    isNan_DER_mass_MMC_test = (np.isnan(x_test[:, 0]) * 1).reshape(-1, 1)
 
     # step 4 filling up missing values
     columns_to_drop, columns_to_fill, feature_medians = calculate_feature_medians(x_tr)
@@ -51,7 +50,7 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
 
     # columns_to_drop = colums_with_missing_features(x_tr)
 
-    # step 5 log heavy tailed features
+    # step 5 log heavy tailed distributed features
     log_columns = [0, 1, 2, 3, 5, 8, 9, 10, 12, 13, 16, 19, 21, 23, 26, 29]
     log_columns = list(
         set(log_columns) - set(columns_to_drop)
@@ -60,9 +59,6 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
     x_test = log_transform(x_test, columns=log_columns)
 
     # step 6 dropping features
-    """if 0 not in columns_to_drop:
-        columns_to_drop.append(0)"""
-
     unique = True
     if 22 not in columns_to_drop:
         unique = len(np.unique(x_tr[:, 22])) == 1
@@ -91,11 +87,12 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
     x_test = np.delete(x_test, columns_to_drop, axis=1)
 
     # step 7 remove outliers
-    """x_tr, y_tr, non_outliers_index_tr = utils.remove_outliers(x_tr, y_tr)
+    x_tr, y_tr, non_outliers_index_tr = utils.remove_outliers(x_tr, y_tr)
     x_angle_tr = x_angle_tr[non_outliers_index_tr]
-    isNan0_tr = isNan0_tr[non_outliers_index_tr]
+    isNan_DER_mass_MMC_tr = isNan_DER_mass_MMC_tr[non_outliers_index_tr]
     if not unique:
-        jet_num_tr = jet_num_tr[non_outliers_index_tr]"""
+        jet_num_tr = jet_num_tr[non_outliers_index_tr]
+        
     print("Shape", x_tr.shape)
 
     # x_tr = np.hstack((x_tr, np.sin(x_angle_tr), np.cos(x_angle_tr)))
@@ -113,10 +110,7 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
         x_tr = build_poly_feature(x_tr, degree)
         x_test = build_poly_feature(x_test, degree)
 
-    # step 10 merge all features
-    # x_tr = np.hstack((x_tr, isNan0_tr, np.sin(x_angle_tr), np.cos(x_angle_tr)))
-    # x_test = np.hstack((x_test, isNan0_test, np.sin(x_angle_test), np.cos(x_angle_test)))
-    
+    # step 10 merge all features    
     if not unique:
         x_tr = np.hstack((x_tr, jet_num_tr.reshape(-1, 1)))
         x_test = np.hstack((x_test, jet_num_test.reshape(-1, 1)))
@@ -124,14 +118,14 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
     x_tr = np.hstack(
         (
             x_tr,
-            isNan0_tr,
+            isNan_DER_mass_MMC_tr,
             np.sin(x_angle_tr), np.cos(x_angle_tr)
         )
     )
     x_test = np.hstack(
         (
             x_test,
-            isNan0_test,
+            isNan_DER_mass_MMC_test,
             np.sin(x_angle_test), np.cos(x_angle_test)
         )
     )
@@ -332,15 +326,12 @@ def build_poly_feature(x, degree):
     """
     n, d = x.shape
 
-
     poly = [np.ones((n, 1))]
     for column in range(d):
-        for i in [0.5] + list(range(1, degree + 1)):
+        for i in list(range(1, degree + 1)): ## add root if needed
             if i == 0.5:
-                # np.c_[poly, np.power(np.abs(x[:, column]), i)
                 poly.append(np.power(np.abs(x[:, column]), i).reshape(-1, 1))
             else:
-                # np.c_[poly, np.power(x[:, column], i)
                 poly.append(np.power(x[:, column], i).reshape(-1, 1))
     
     for column_i in range(d):
@@ -349,8 +340,5 @@ def build_poly_feature(x, degree):
             poly.append((x[:, column_i] + x[:, column_j]).reshape(-1, 1))
             poly.append((np.power(x[:, column_i], 2) * x[:, column_j]).reshape(-1, 1))
             poly.append((x[:, column_i] * np.power(x[:, column_j], 2)).reshape(-1, 1))
-            '''poly = np.c_[poly, x[:, column_i] * x[:, column_j],
-                x[:, column_i] + x[:, column_j], 
-                np.power(x[:, column_i], 2) * x[:, column_j], x[:, column_i] * np.power(x[:, column_j], 2)]'''
 
     return np.concatenate(poly, axis=1)

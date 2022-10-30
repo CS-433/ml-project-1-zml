@@ -56,4 +56,4 @@ if __name__ == "__main__":
     print("Ratio", (y_val == 1).sum() / len(y_val))
     print(y_val)
 
-    helpers.create_csv_submission(ids, y_val, "lm5.csv")
+    helpers.create_csv_submission(ids, y_val, "lm6.csv")

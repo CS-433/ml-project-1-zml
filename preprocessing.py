@@ -98,8 +98,8 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
         jet_num_tr = jet_num_tr[non_outliers_index_tr]"""
     print("Shape", x_tr.shape)
 
-    x_tr = np.hstack((x_tr, np.sin(x_angle_tr), np.cos(x_angle_tr)))
-    x_test = np.hstack((x_test, np.sin(x_angle_test), np.cos(x_angle_test)))
+    # x_tr = np.hstack((x_tr, np.sin(x_angle_tr), np.cos(x_angle_tr)))
+    # x_test = np.hstack((x_test, np.sin(x_angle_test), np.cos(x_angle_test)))
 
     # setp 8 standardization of features
     x_tr, mean_x, std_x = standardize(x_tr)
@@ -116,8 +116,8 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
     # step 10 merge all features
     # x_tr = np.hstack((x_tr, isNan0_tr, np.sin(x_angle_tr), np.cos(x_angle_tr)))
     # x_test = np.hstack((x_test, isNan0_test, np.sin(x_angle_test), np.cos(x_angle_test)))
+    
     if not unique:
-        print("Shape3", x_tr.shape, jet_num_tr.shape)
         x_tr = np.hstack((x_tr, jet_num_tr.reshape(-1, 1)))
         x_test = np.hstack((x_test, jet_num_test.reshape(-1, 1)))
 
@@ -125,17 +125,18 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
         (
             x_tr,
             isNan0_tr,
-            # np.sin(x_angle_tr), np.cos(x_angle_tr)
+            np.sin(x_angle_tr), np.cos(x_angle_tr)
         )
     )
     x_test = np.hstack(
         (
             x_test,
             isNan0_test,
-            # np.sin(x_angle_test), np.cos(x_angle_test)
+            np.sin(x_angle_test), np.cos(x_angle_test)
         )
     )
 
+    print("Shape2", x_tr.shape)
     return x_tr, x_test, y_tr, y_test
 
 
@@ -317,7 +318,7 @@ def log_transform(x, columns):
     return x
 
 
-def build_poly_feature(tx, degree):
+def build_poly_feature(x, degree):
     """
     Polynomial basis functions for input resources x up to degree 'degree'.
     In addition, perform coupling between each pair of x features.
@@ -329,15 +330,27 @@ def build_poly_feature(tx, degree):
     Returns:
         poly: numpy array of shape (N, degree + 1)
     """
-    N, D = tx.shape
-    poly = tx.copy()
-    # powers
-    if degree > 1:
-        for d in range(2, degree + 1):
-            poly = np.hstack((poly, np.power(tx, d)))
-    # product
-    for i in range(D):
-        for j in range(i + 1, D):
-            product = tx[:, i] * tx[:, j]
-            poly = np.c_[poly, product]
-    return add_bias_term(poly)
+    n, d = x.shape
+
+
+    poly = [np.ones((n, 1))]
+    for column in range(d):
+        for i in [0.5] + list(range(1, degree + 1)):
+            if i == 0.5:
+                # np.c_[poly, np.power(np.abs(x[:, column]), i)
+                poly.append(np.power(np.abs(x[:, column]), i).reshape(-1, 1))
+            else:
+                # np.c_[poly, np.power(x[:, column], i)
+                poly.append(np.power(x[:, column], i).reshape(-1, 1))
+    
+    for column_i in range(d):
+        for column_j in range(column_i + 1, d):
+            poly.append((x[:, column_i] * x[:, column_j]).reshape(-1, 1))
+            poly.append((x[:, column_i] + x[:, column_j]).reshape(-1, 1))
+            poly.append((np.power(x[:, column_i], 2) * x[:, column_j]).reshape(-1, 1))
+            poly.append((x[:, column_i] * np.power(x[:, column_j], 2)).reshape(-1, 1))
+            '''poly = np.c_[poly, x[:, column_i] * x[:, column_j],
+                x[:, column_i] + x[:, column_j], 
+                np.power(x[:, column_i], 2) * x[:, column_j], x[:, column_i] * np.power(x[:, column_j], 2)]'''
+
+    return np.concatenate(poly, axis=1)

@@ -8,8 +8,8 @@ import numpy as np
 if __name__ == "__main__":
     y, X, ids = helpers.load_csv_data(path="resources/train.csv")
 
-    lambdas = [0, 0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0, 5.0, 10.0]
-    degrees = [i for i in range(2, 13)]
+    lambdas = [0, 0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5]
+    degrees = [i for i in range(13, 17)]
 
     traning_groups = utils.group_by_categories(X, column=22)
     for i, idx in enumerate(traning_groups):
@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
         print("-" * 50)
         print(
-            f"For PRI_jet_num={i}, the best score={best_accuracy} is given for degree={best_degree} and lambda={lambda_}"
+            f"For PRI_jet_num={i}, the best score={best_accuracy} is given for degree={best_degree} and lambda={best_lambda}"
         )
         print(
             f"For PRI_jet_num={i}, the best f1={best_f1} is given for degree={f1_degree} and lambda={f1_lambda}"

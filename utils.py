@@ -161,7 +161,7 @@ def compute_score(y, tx, weights, f="log"):
     return (y_pred == y).sum() / len(y)
 
 
-def f1_score(actual, tx, weights, label=1, f="log"):
+def f1_score(actual, tx, weights, label=1, f=logistic):
     """calculate f1-score for the given `label`
     Args:
         actual: ground truth label
@@ -172,10 +172,7 @@ def f1_score(actual, tx, weights, label=1, f="log"):
     Returns:
 
     """
-    if f == "log":
-        predicted = np.array([logistic(x, weights) for x in tx])
-    if f == "linear":
-        predicted = np.array([linear(x, weights) for x in tx])
+    predicted = np.array([f(x, weights) for x in tx])
 
     tp = np.sum((actual == label) & (predicted == label))
     fp = np.sum((actual != label) & (predicted == label))

@@ -32,7 +32,7 @@ def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
                 i=n_iter, n=max_iters - 1, l=loss, w=w
             )
         )
-        # might add early stop
+
     return ws[-1], losses[-1]
 
 
@@ -65,7 +65,6 @@ def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma):
                 i=n_iter, n=max_iters - 1, l=loss, w=w
             )
         )
-        # might add early stop
 
     return ws[-1], losses[-1]
 
@@ -167,7 +166,6 @@ def reg_logistic_regression(
         return ws[-1], losses[-1]
 
     for n_iter in range(max_iters):
-        print("Using adaptive gamma to predict")
         gradient = -logistic_regression_gradient(y, tx, w, lambda_=lambda_)
         tl = 0
         tr = 0

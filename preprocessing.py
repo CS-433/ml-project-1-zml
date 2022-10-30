@@ -8,15 +8,14 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
     """
     Preprocess the input resources.
     1. Replace -999.0 with NaN
-    [2. One-hot encoding of column 22]
-    3. Add binary feature isNaN for column 0
-    4. Fill up missing values -> median or learn
-    5. Log positive columns 0, 1, 2, 3, 5, 8, 9, 10, 12, 13, 16, 19, 21, 22, 23, 26, 29
-    6. Drop some columns
-    7. Delete big outliers rows
-    8. Standardize
-    9. Add bias or build polynomial features
-    10. Add angle features
+    2. Add binary feature isNaN for column 0
+    3. Fill up missing values -> median or learn
+    4. Log positive columns 0, 1, 2, 3, 5, 8, 9, 10, 12, 13, 16, 19, 21, 22, 23, 26, 29
+    5. Drop some columns
+    6. Delete big outliers rows
+    7. Standardize
+    8. Add bias or build polynomial features
+    9. Add angle features
 
     Args:
         x_tr: numpy array of shape (N, D), N is number of samples, D is number of features, representing training set
@@ -87,17 +86,18 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
     x_test = np.delete(x_test, columns_to_drop, axis=1)
 
     # step 7 remove outliers
-    x_tr, y_tr, non_outliers_index_tr = utils.remove_outliers(x_tr, y_tr)
+    '''x_tr, y_tr, non_outliers_index_tr = utils.remove_outliers(x_tr, y_tr)
     x_angle_tr = x_angle_tr[non_outliers_index_tr]
     isNan_DER_mass_MMC_tr = isNan_DER_mass_MMC_tr[non_outliers_index_tr]
     if not unique:
-        jet_num_tr = jet_num_tr[non_outliers_index_tr]
+        jet_num_tr = jet_num_tr[non_outliers_index_tr]'''
         
-    print("Shape", x_tr.shape)
+    # print("Shape", x_tr.shape)
 
     # x_tr = np.hstack((x_tr, np.sin(x_angle_tr), np.cos(x_angle_tr)))
     # x_test = np.hstack((x_test, np.sin(x_angle_test), np.cos(x_angle_test)))
 
+        
     # setp 8 standardization of features
     x_tr, mean_x, std_x = standardize(x_tr)
     x_test, _, _ = standardize(x_test, mean_x, std_x)
@@ -130,7 +130,7 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
         )
     )
 
-    print("Shape2", x_tr.shape)
+    # print("Shape2", x_tr.shape)
     return x_tr, x_test, y_tr, y_test
 
 

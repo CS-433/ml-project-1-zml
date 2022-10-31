@@ -37,7 +37,7 @@ file should be placed into `resources` folder with name `train.csv` and `test.cs
 ├── Exploratory.ipynb: Data exploratory analysis, where it contains plots and conclusions to support our preprocessing and model selection.
 ├── fine_tuning.ipynb: fine tuning the model and plot the result
 ├── learning_curves.ipynb: plot the learning curves for Rigde and logistic regression.
-├── Report.pdf: a 2-pages report of the complete solution.
+├── CS_433_Project_1.pdf: a 2-pages report of the complete solution.
 ├── README.md
 └── resources
     ├── train.csv

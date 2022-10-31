@@ -30,9 +30,7 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
     """
     # step 1 replacing non-useful values with None
     x_tr[x_tr == -999.0] = np.NaN
-    # x_tr[:, -1][x_tr[:, -1] == 0] = np.NaN
     x_test[x_test == -999.0] = np.NaN
-    # x_test[:, -1][x_test[:, -1] == 0] = np.NaN
 
     # step 2
     isNan_DER_mass_MMC_tr = (np.isnan(x_tr[:, 0]) * 1).reshape(-1, 1)

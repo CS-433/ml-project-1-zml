@@ -34,11 +34,11 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
     x_test[x_test == -999.0] = np.NaN
     # x_test[:, -1][x_test[:, -1] == 0] = np.NaN
 
-    # step 3
+    # step 2
     isNan_DER_mass_MMC_tr = (np.isnan(x_tr[:, 0]) * 1).reshape(-1, 1)
     isNan_DER_mass_MMC_test = (np.isnan(x_test[:, 0]) * 1).reshape(-1, 1)
 
-    # step 4 filling up missing values
+    # step 3 filling up missing values
     columns_to_drop, columns_to_fill, feature_medians = calculate_feature_medians(x_tr)
     x_tr = fill_features_with_median(x_tr, columns_to_fill, feature_medians)
     x_test = fill_features_with_median(x_test, columns_to_fill, feature_medians)
@@ -47,9 +47,7 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
     # x_tr = fill_features_with_weights(x_tr, columns_to_fill, feature_weights, learning_features)
     # x_test = fill_features_with_weights(x_test, columns_to_fill, feature_weights, learning_features)
 
-    # columns_to_drop = colums_with_missing_features(x_tr)
-
-    # step 5 log heavy tailed distributed features
+    # step 4 log heavy tailed distributed features
     log_columns = [0, 1, 2, 3, 5, 8, 9, 10, 12, 13, 16, 19, 21, 23, 26, 29]
     log_columns = list(
         set(log_columns) - set(columns_to_drop)
@@ -57,7 +55,7 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
     x_tr = log_transform(x_tr, columns=log_columns)
     x_test = log_transform(x_test, columns=log_columns)
 
-    # step 6 dropping features
+    # step 5 dropping features
     unique = True
     if 22 not in columns_to_drop:
         unique = len(np.unique(x_tr[:, 22])) == 1
@@ -85,7 +83,7 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
     x_tr = np.delete(x_tr, columns_to_drop, axis=1)
     x_test = np.delete(x_test, columns_to_drop, axis=1)
 
-    # step 7 remove outliers
+    # step 6 remove outliers
     non_outliers_index_tr = utils.remove_outliers(x_tr[:, :-1])
     x_tr, y_tr = x_tr[non_outliers_index_tr], y_tr[non_outliers_index_tr]
 
@@ -94,11 +92,11 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
     if not unique:
         jet_num_tr = jet_num_tr[non_outliers_index_tr]
 
-    # setp 8 standardization of features
+    # setp 7 standardization of features
     x_tr, mean_x, std_x = standardize(x_tr)
     x_test, _, _ = standardize(x_test, mean_x, std_x)
 
-    # step 9 create polynomial regression or juts add bias term
+    # step 8 create polynomial regression or juts add bias term
     if degree is None:
         x_tr = add_bias_term(x_tr)
         x_test = add_bias_term(x_test)
@@ -106,7 +104,7 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
         x_tr = build_poly_feature(x_tr, degree)
         x_test = build_poly_feature(x_test, degree)
 
-    # step 10 merge all features
+    # step 9 merge all features
     if not unique:
         x_tr = np.hstack((x_tr, jet_num_tr.reshape(-1, 1)))
         x_test = np.hstack((x_test, jet_num_test.reshape(-1, 1)))
@@ -118,7 +116,6 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
         (x_test, isNan_DER_mass_MMC_test, np.sin(x_angle_test), np.cos(x_angle_test))
     )
 
-    # print("Shape2", x_tr.shape)
     return x_tr, x_test, y_tr, y_test
 
 
@@ -316,7 +313,7 @@ def build_poly_feature(x, degree):
 
     poly = [np.ones((n, 1))]
     for column in range(d):
-        for i in list(range(1, degree + 1)):  ## add root if needed
+        for i in list(range(1, degree + 1)):
             if i == 0.5:
                 poly.append(np.power(np.abs(x[:, column]), i).reshape(-1, 1))
             else:

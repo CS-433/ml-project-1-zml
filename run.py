@@ -9,11 +9,9 @@ import numpy as np
 
 if __name__ == "__main__":
     # load resources
-
-    # Don't forget to shuffle resources testing process
     y, X, _ = helpers.load_csv_data(path="resources/train.csv")
 
-    # convert labels to be only 0 and 1
+    # convert labels to be only 0 and 1 if logistic regression
     # y[np.where(y == -1)] = 0
 
     # split resources for validation

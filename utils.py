@@ -139,7 +139,7 @@ def linear(x, weights):
     if x @ weights >= 0.5:
         return 1
     else:
-        return 0
+        return -1
 
 
 def compute_score(y, tx, weights, f="log"):
@@ -211,20 +211,15 @@ def outliers_map(x):
     return mask1 | mask2
 
 
-def remove_outliers(x, y):
+def remove_outliers(x):
     """remove outliers"""
-    x_copy = x.copy()
-    y_copy = y.copy()
     outliers = np.ones(x.shape, dtype=bool)
 
     for i in range(x.shape[1]):
         outliers[:, i] = outliers_map(x[:, i])
 
-    outliers = np.sum(outliers, axis=1) == x.shape[1]
-    x_copy = x_copy[outliers]
-    y_copy = y_copy[outliers]
-
-    return x_copy, y_copy, outliers
+    non_outliers = np.sum(outliers, axis=1) == x.shape[1]
+    return non_outliers
 
 
 def group_by_categories(X, column):

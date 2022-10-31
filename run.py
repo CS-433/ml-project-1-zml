@@ -1,3 +1,4 @@
+from tkinter import W
 import preprocessing
 import utils
 import implementations
@@ -16,7 +17,7 @@ if __name__ == "__main__":
     # y[np.where(y == -1)] = 0
 
     # split resources for validation
-    x_tr, x_val, y_tr, y_val = utils.split_data(X, y, 0.8)
+    x_tr, x_val, y_tr, y_val = utils.split_data(X, y, 1)
     y_val, x_val, ids = helpers.load_csv_data(path="resources/test.csv")
     
     # split by jet
@@ -40,20 +41,20 @@ if __name__ == "__main__":
         )
 
         '''weights, _ = implementations.reg_logistic_regression(
-            y_tr_i, x_tr_i, 0.01, np.zeros(x_tr_i.shape[1]), max_iters=2000, gamma="adaptive")'''
+            y_tr_i, x_tr_i, 0.0, np.zeros(x_tr_i.shape[1]), max_iters=400, gamma="adaptive")'''
         weights, _ = implementations.ridge_regression(y_tr_i, x_tr_i, lambda_)
 
         # y_pred = np.array([utils.logistic(x, weights) for x in x_val_i])
         y_pred = np.array([-1 if x @ weights < 0 else 1 for x in x_val_i])
-        correct_predict = (y_pred == y_val_i).sum()
-        print("Group precision", correct_predict / len(y_val_i))
+        # correct_predict = (y_pred == y_val_i).sum()
+        # print("Group precision", correct_predict / len(y_val_i))
 
-        total_correct += correct_predict
-        # y_val[validation_group_idx] = y_pred
+        # total_correct += correct_predict
+        y_val[validation_group_idx] = y_pred
         print("*" * 30)
 
-    print("Validation accuracy", total_correct / len(y_val))
-    # print("Ratio", (y_val == 1).sum() / len(y_val))
-    # print(y_val)
+    # print("Validation accuracy", total_correct / len(y_val))
+    print("Ratio", (y_val == 1).sum() / len(y_val))
+    print(y_val)
 
-    # helpers.create_csv_submission(ids, y_val, "lm6.csv")
+    helpers.create_csv_submission(ids, y_val, "lm1.csv")

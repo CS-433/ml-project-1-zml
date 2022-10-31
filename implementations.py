@@ -28,8 +28,8 @@ def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
         ws.append(w)
         losses.append(loss)
         print(
-            "iteration {i}/{n}: loss={l}, w={w}".format(
-                i=n_iter, n=max_iters - 1, l=loss, w=w
+            "iteration {i}/{n}: loss={l}".format(
+                i=n_iter, n=max_iters - 1, l=loss
             )
         )
 
@@ -61,8 +61,8 @@ def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma):
         ws.append(w)
         losses.append(loss)
         print(
-            "SGD iteration {i}/{n}: loss={l}, w={w}".format(
-                i=n_iter, n=max_iters - 1, l=loss, w=w
+            "SGD iteration {i}/{n}: loss={l}".format(
+                i=n_iter, n=max_iters - 1, l=loss
             )
         )
 
@@ -124,7 +124,7 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma, balanced=False):
 
 
 def reg_logistic_regression(
-    y, tx, lambda_, initial_w, max_iters, gamma, balanced=False
+    y, tx, lambda_, initial_w, max_iters, gamma, balanced=False, verbose=True,
 ):
     """The Gradient Descent algorithm (GD).
 
@@ -199,7 +199,7 @@ def reg_logistic_regression(
         loss = cross_entropy_loss(y, tx, w, balanced=balanced)
         ws.append(w)
         losses.append(loss)
-        if n_iter % 200 == 0:
+        if verbose and n_iter % 200 == 0:
             print(f"Iteration {n_iter + 1}/{max_iters}: loss={loss}")
 
         if n_iter > 1 and np.abs(losses[-1] - losses[-2]) < tol:

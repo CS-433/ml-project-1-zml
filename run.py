@@ -19,7 +19,7 @@ if __name__ == "__main__":
     # split resources for validation
     x_tr, x_val, y_tr, y_val = utils.split_data(X, y, 1)
     y_val, x_val, ids = helpers.load_csv_data(path="resources/test.csv")
-    
+
     # split by jet
     training_groups = utils.group_by_categories(x_tr, column=22)
     validation_groups = utils.group_by_categories(x_val, column=22)
@@ -40,8 +40,8 @@ if __name__ == "__main__":
             x_tr_i, x_val_i, y_tr_i, y_val_i, degree=degree
         )
 
-        '''weights, _ = implementations.reg_logistic_regression(
-            y_tr_i, x_tr_i, 0.0, np.zeros(x_tr_i.shape[1]), max_iters=400, gamma="adaptive")'''
+        """weights, _ = implementations.reg_logistic_regression(
+            y_tr_i, x_tr_i, 0.0, np.zeros(x_tr_i.shape[1]), max_iters=400, gamma="adaptive")"""
         weights, _ = implementations.ridge_regression(y_tr_i, x_tr_i, lambda_)
 
         # y_pred = np.array([utils.logistic(x, weights) for x in x_val_i])

@@ -30,7 +30,7 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
     """
     # step 1 replacing non-useful values with None
     x_tr[x_tr == -999.0] = np.NaN
-    # x_tr[:, -1][x_tr[:, -1] == 0] = np.NaN 
+    # x_tr[:, -1][x_tr[:, -1] == 0] = np.NaN
     x_test[x_test == -999.0] = np.NaN
     # x_test[:, -1][x_test[:, -1] == 0] = np.NaN
 
@@ -93,8 +93,7 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
     isNan_DER_mass_MMC_tr = isNan_DER_mass_MMC_tr[non_outliers_index_tr]
     if not unique:
         jet_num_tr = jet_num_tr[non_outliers_index_tr]
-        
-        
+
     # setp 8 standardization of features
     x_tr, mean_x, std_x = standardize(x_tr)
     x_test, _, _ = standardize(x_test, mean_x, std_x)
@@ -107,24 +106,16 @@ def preprocess_data(x_tr, x_test, y_tr, y_test, degree=None):
         x_tr = build_poly_feature(x_tr, degree)
         x_test = build_poly_feature(x_test, degree)
 
-    # step 10 merge all features    
+    # step 10 merge all features
     if not unique:
         x_tr = np.hstack((x_tr, jet_num_tr.reshape(-1, 1)))
         x_test = np.hstack((x_test, jet_num_test.reshape(-1, 1)))
 
     x_tr = np.hstack(
-        (
-            x_tr,
-            isNan_DER_mass_MMC_tr,
-            np.sin(x_angle_tr), np.cos(x_angle_tr)
-        )
+        (x_tr, isNan_DER_mass_MMC_tr, np.sin(x_angle_tr), np.cos(x_angle_tr))
     )
     x_test = np.hstack(
-        (
-            x_test,
-            isNan_DER_mass_MMC_test,
-            np.sin(x_angle_test), np.cos(x_angle_test)
-        )
+        (x_test, isNan_DER_mass_MMC_test, np.sin(x_angle_test), np.cos(x_angle_test))
     )
 
     # print("Shape2", x_tr.shape)
@@ -325,12 +316,12 @@ def build_poly_feature(x, degree):
 
     poly = [np.ones((n, 1))]
     for column in range(d):
-        for i in list(range(1, degree + 1)): ## add root if needed
+        for i in list(range(1, degree + 1)):  ## add root if needed
             if i == 0.5:
                 poly.append(np.power(np.abs(x[:, column]), i).reshape(-1, 1))
             else:
                 poly.append(np.power(x[:, column], i).reshape(-1, 1))
-    
+
     for column_i in range(d):
         for column_j in range(column_i + 1, d):
             poly.append((x[:, column_i] * x[:, column_j]).reshape(-1, 1))

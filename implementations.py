@@ -27,11 +27,7 @@ def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
 
         ws.append(w)
         losses.append(loss)
-        print(
-            "iteration {i}/{n}: loss={l}".format(
-                i=n_iter, n=max_iters - 1, l=loss
-            )
-        )
+        print("iteration {i}/{n}: loss={l}".format(i=n_iter, n=max_iters - 1, l=loss))
 
     return ws[-1], losses[-1]
 
@@ -61,9 +57,7 @@ def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma):
         ws.append(w)
         losses.append(loss)
         print(
-            "SGD iteration {i}/{n}: loss={l}".format(
-                i=n_iter, n=max_iters - 1, l=loss
-            )
+            "SGD iteration {i}/{n}: loss={l}".format(i=n_iter, n=max_iters - 1, l=loss)
         )
 
     return ws[-1], losses[-1]
@@ -124,7 +118,14 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma, balanced=False):
 
 
 def reg_logistic_regression(
-    y, tx, lambda_, initial_w, max_iters, gamma, balanced=False, verbose=True,
+    y,
+    tx,
+    lambda_,
+    initial_w,
+    max_iters,
+    gamma,
+    balanced=False,
+    verbose=True,
 ):
     """The Gradient Descent algorithm (GD).
 
@@ -172,9 +173,7 @@ def reg_logistic_regression(
         t = 1
         loss = cross_entropy_loss(y, tx, w, balanced=balanced)
         while True:
-            qt = cross_entropy_loss(
-                y, tx, w + t * gradient, balanced=balanced
-            )
+            qt = cross_entropy_loss(y, tx, w + t * gradient, balanced=balanced)
             qp = -gradient.T @ gradient
             gpt = (
                 logistic_regression_gradient(y, tx, w + t * gradient, lambda_=lambda_).T

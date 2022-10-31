@@ -10,10 +10,19 @@ Lazar Milikic: @Lemmy00
 
 Yurui Zhu: @ruiarui
 
+## Guideline
+
+To successfully run this project, modules including `numpy`, `matplotlib` and `csv` are required. And training and test 
+file should be placed into `resources` folder with name `train.csv` and `test.csv`
+
 ## Project Outline
 
-todo
-With a Test Accuracy of 0.84
+ The purpose of this project is to implement basic Machine learning models
+  which include linear, ridge, and logistic regression, and then use them
+  to train and later predict whether a particle with given features 
+  is classified as a Higgs boson or not. As our input data has an abundance of missing values,
+  outliers, and features with heavy-tailed distributions, besides the aforementioned models, preprocessing and feature engineering play a crucial role in improving classification accuracies. 
+  The final result of this project yields 0.84 categorization accuracy and an F1 score of 0.757 `submission \#204396`.
 
 
 ## Code Structure
@@ -26,13 +35,11 @@ With a Test Accuracy of 0.84
 ├── cross_vaildation.py: Python file for running cross validaion to find the best hyper-parameter.
 ├── Exploratory.ipynb: Data exploratory analysis, where it contains plots and conclusions to support our preprocessing and model selection.
 ├── fine_tuning.ipynb: fine tuning the model and plot the result
+├── learning_curves.ipynb: plot the learning curves 
 ├── Report.pdf: a 2-pages report of the complete solution.
 ├── README.md
 └── resources
     ├── train.csv
     ├── test.csv
 ```
-## Guideline
 
-To successfully run this project, modules including `numpy`, `matplotlib` and `csv` are required. And training and test 
-file should be placed into `resources` folder named `train.csv` and `test.csv`

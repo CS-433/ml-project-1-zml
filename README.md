@@ -13,7 +13,7 @@ Yurui Zhu: @ruiarui
 ## Project Outline
 
 todo
-With a Test Accuracy of 0.839
+With a Test Accuracy of 0.84
 
 
 ## Code Structure

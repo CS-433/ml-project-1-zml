@@ -3,8 +3,9 @@
 import numpy as np
 import csv
 
+
 def load_csv_data(path, sub_sample=False):
-    """Loads data and returns y (class labels), tX (features) and ids (event ids)"""
+    """Loads resources and returns y (class labels), tX (features) and ids (event ids)"""
     y = np.genfromtxt(path, delimiter=",", skip_header=1, dtype=str, usecols=1)
     x = np.genfromtxt(path, delimiter=",", skip_header=1)
     ids = x[:, 0].astype(np.int)
@@ -41,9 +42,9 @@ def create_csv_submission(ids, y_pred, name):
 def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
     """
     Generate a minibatch iterator for a dataset.
-    Takes as input two iterables (here the output desired values 'y' and the input data 'tx')
+    Takes as input two iterables (here the output desired values 'y' and the input resources 'tx')
     Outputs an iterator which gives mini-batches of `batch_size` matching elements from `y` and `tx`.
-    Data can be randomly shuffled to avoid ordering in the original data messing with the randomness of the minibatches.
+    Data can be randomly shuffled to avoid ordering in the original resources messing with the randomness of the minibatches.
     Example of use :
     for minibatch_y, minibatch_tx in batch_iter(y, tx, 32):
         <DO-SOMETHING>

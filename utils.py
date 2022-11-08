@@ -1,7 +1,8 @@
 import numpy as np
 
+
 def mean_square_error(y, tx, w):
-    """Calculate the loss using either MSE or MAE.
+    """Calculate the loss using either MSE
 
     Args:
         y: shape=(N, )
@@ -12,7 +13,7 @@ def mean_square_error(y, tx, w):
         the value of the loss (a scalar), corresponding to the input parameters w.
     """
     error = y - tx @ w
-    return 0.5 * error.T @ error / y.shape[0]
+    return 1 / 2 * np.mean(error**2)
 
 
 def linear_regression_gradient(y, tx, w):
@@ -41,20 +42,34 @@ def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
 
-def cross_entropy_loss(y, tx, w, lambda_=0):
+def cross_entropy_loss(y, tx, w, lambda_=0, balanced=False):
     """Compute the cross entropy loss.
 
     Args:
         y:  shape=(N, 1)
         tx: shape=(N, D)
-        w:  shape=(D, 1) 
+        w:  shape=(D, 1)
         lambda_: ridge regression parameter
-        bias_term: true if tx has a bias term
+        balanced: set true to balanced loss with class
 
     Returns:
         a non-negative loss
     """
-    return np.mean(np.log(1 + np.exp(tx @ w)) - y * (tx @ w)) + 0.5 * lambda_ * np.linalg.norm(w) ** 2
+    if not balanced:
+        return (
+            np.mean(np.log(1 + np.exp(tx @ w)) - y * (tx @ w))
+            + lambda_ * np.linalg.norm(w) ** 2
+        )
+    else:
+        y_0 = y[np.where(y == 0)]
+        beta = y_0.shape[0] / y.shape[0]
+        y_hat = sigmoid(tx @ w)
+        return (
+            -np.mean(
+                (beta * y * np.log(y_hat) + (1 - beta) * (1 - y) * np.log(1 - y_hat))
+            )
+            + lambda_ * np.linalg.norm(w) ** 2
+        )
 
 
 def logistic_regression_gradient(y, tx, w, lambda_=0):
@@ -63,31 +78,13 @@ def logistic_regression_gradient(y, tx, w, lambda_=0):
     Args:
         y:  shape=(N, 1)
         tx: shape=(N, D)
-        w:  shape=(D, 1) 
-        bias_term: true if tx has a bias term
+        w:  shape=(D, 1)
+        lambda_: ridge regression parameter
 
     Returns:
         a vector of shape (D, 1)
     """
-    return tx.T @ (sigmoid(tx @ w) - y) / y.shape[0] + lambda_ * w
-
-
-def linear(x, weights):
-    if x @ weights < 0:
-        return -1
-    else:
-        return 1
-
-def logistic(x, weights):
-    if sigmoid(x @ weights) >= 0.5:
-        return 1
-    else:
-        return 0
-
-
-def compute_score(y, tx, weights, f=logistic):
-    y_pred = np.array([f(x, weights) for x in tx])
-    return (y_pred == y).sum() / len(y)
+    return tx.T @ (sigmoid(tx @ w) - y) / y.shape[0] + 2 * lambda_ * w
 
 
 def split_data(x, y, ratio):
@@ -100,8 +97,8 @@ def split_data(x, y, ratio):
         ratio: scalar in [0,1]
 
     Returns:
-        x_tr: numpy array containing the train data.
-        x_te: numpy array containing the test data.
+        x_tr: numpy array containing the train resources.
+        x_te: numpy array containing the test resources.
         y_tr: numpy array containing the train labels.
         y_te: numpy array containing the test labels.
     """
@@ -115,6 +112,79 @@ def split_data(x, y, ratio):
     return x[perm_tr], x[perm_te], y[perm_tr], y[perm_te]
 
 
+def logistic(x, weights):
+    """
+    For each sample, get logistic predict result based on weights
+    Args:
+        x: input resources
+        weights: trained weight
+    Returns:
+        predicted label
+    """
+    if sigmoid(x @ weights) >= 0.5:
+        return 1
+    else:
+        return 0
+
+
+def linear(x, weights):
+    """
+    For each sample, get linear predict result based on weights
+    Args:
+        x: input resources
+        weights: trained weight
+    Returns:
+        predicted label
+    """
+    if x @ weights >= 0.5:
+        return 1
+    else:
+        return -1
+
+
+def compute_score(y, tx, weights, f="log"):
+    """
+    compute the accuracy score
+    Args:
+        y: the ground truth label
+        tx: input resources
+        weights: trained weight
+        f: the function that should be used to predict label
+
+    Returns:
+        the accuracy score
+    """
+    if f == "log":
+        y_pred = np.array([logistic(x, weights) for x in tx])
+    if f == "linear":
+        y_pred = np.array([linear(x, weights) for x in tx])
+    return (y_pred == y).sum() / len(y)
+
+
+def f1_score(actual, tx, weights, label=1, f=logistic):
+    """calculate f1-score for the given `label`
+    Args:
+        actual: ground truth label
+        tx: input resources
+        weights: trained weight
+        label: the given label
+        f: the function that should be used to predict label
+    Returns:
+
+    """
+    predicted = np.array([f(x, weights) for x in tx])
+
+    tp = np.sum((actual == label) & (predicted == label))
+    fp = np.sum((actual != label) & (predicted == label))
+    fn = np.sum((predicted != label) & (actual == label))
+
+    # F1 = 2 * (precision * recall) / (precision + recall)
+    precision = tp / (tp + fp)
+    recall = tp / (tp + fn)
+    f1 = 2 * (precision * recall) / (precision + recall)
+    return f1
+
+
 def kfolds(n, kfold=10, shuffle=True):
     if shuffle:
         perm = np.random.permutation(n)
@@ -123,11 +193,12 @@ def kfolds(n, kfold=10, shuffle=True):
 
     kfoldsShuffle, div = [], int(n / kfold)
     for i in range(kfold):
-        test_indices = perm[div * i: div * (i + 1)]
-        train_indices = np.concatenate((perm[:div * i], perm[div * (i + 1):]))
+        test_indices = perm[div * i : div * (i + 1)]
+        train_indices = np.concatenate((perm[: div * i], perm[div * (i + 1) :]))
         kfoldsShuffle.append((train_indices, test_indices))
 
     return kfoldsShuffle
+
 
 def outliers_map(x):
     """get outliers position per column"""
@@ -140,39 +211,22 @@ def outliers_map(x):
     return mask1 | mask2
 
 
-def remove_outliers(x, y):
+def remove_outliers(x):
     """remove outliers"""
-    x_copy = x.copy()
-    y_copy = y.copy()
     outliers = np.ones(x.shape, dtype=bool)
 
     for i in range(x.shape[1]):
         outliers[:, i] = outliers_map(x[:, i])
 
-    outliers = np.sum(outliers, axis=1) == x.shape[1]
-    x_copy = x_copy[outliers]
-    y_copy = y_copy[outliers]
+    non_outliers = np.sum(outliers, axis=1) == x.shape[1]
+    return non_outliers
 
-    return x_copy, y_copy, outliers
-
-def f1_score(actual, tx, weights, label=1, f=logistic):
-    """ calculate f1-score for the given `label` """
-    predicted = np.array([f(x, weights) for x in tx])
-
-    tp = np.sum((actual == label) & (predicted == label))
-    fp = np.sum((actual != label) & (predicted == label))
-    fn = np.sum((predicted != label) & (actual == label))
-
-    precision = tp / (tp + fp)
-    recall = tp / (tp + fn)
-    f1 = 2 * (precision * recall) / (precision + recall)
-    return f1
 
 def group_by_categories(X, column):
     """
-    Group by data samples by categories of feature in column 'column'.
+    Group by resources samples by categories of feature in column 'column'.
     Note that column must represent a categorical feature, otherwise
-    the devision makes no sense.
+    the division makes no sense.
     """
     categories = np.unique(X[:, column])
     groups = [np.where((X[:, column] == category))[0] for category in [0, 1]]

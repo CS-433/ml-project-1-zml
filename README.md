@@ -1,6 +1,9 @@
 # CS-433 Machine Learning Project 1 
 # Higgs Boson Classification
 
+## Results 
+The final result of this project yields 0.84 categorization accuracy and an F1 score of 0.757, placing us in the 5th out of 200 teams participating in the Higgs Boson challenge.
+
 ## Team
 The project is accomplished by team **ZML** with members:
 
